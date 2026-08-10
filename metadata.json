@@ -1,0 +1,6 @@
+{
+  "name": "Toán Thầy Mạnh - Điểm Danh",
+  "description": "Web app quản lý nhóm học Toán, điểm danh nhanh, thông báo tự động cho phụ huynh và thống kê chuyên cần.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
