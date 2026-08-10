@@ -11,6 +11,7 @@ export interface User {
   avatar?: string;
   studentId?: string; // linked student for 'student' or 'parent' role
   parentId?: string;  // linked parent id for 'student' role
+  password?: string;
 }
 
 export interface Group {
@@ -39,6 +40,7 @@ export interface Student {
   groupId: string;
   startDate: string;     // YYYY-MM-DD
   status: 'active' | 'inactive';
+  password?: string;
 }
 
 export interface Session {

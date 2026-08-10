@@ -2,13 +2,13 @@ import { Group, Student, Session, AttendanceRecord, NotificationItem, User, Atte
 import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_STUDENTS, INITIAL_SESSIONS, INITIAL_ATTENDANCE, INITIAL_NOTIFICATIONS } from '../data/mockSeedData';
 
 const KEYS = {
-  USERS: 'tm_users_v2',
-  GROUPS: 'tm_groups_v2',
-  STUDENTS: 'tm_students_v2',
-  SESSIONS: 'tm_sessions_v2',
-  ATTENDANCE: 'tm_attendance_v2',
-  NOTIFICATIONS: 'tm_notifications_v2',
-  CURRENT_USER: 'tm_current_user_v2',
+  USERS: 'tm_users_v3',
+  GROUPS: 'tm_groups_v3',
+  STUDENTS: 'tm_students_v3',
+  SESSIONS: 'tm_sessions_v3',
+  ATTENDANCE: 'tm_attendance_v3',
+  NOTIFICATIONS: 'tm_notifications_v3',
+  CURRENT_USER: 'tm_current_user_v3',
 };
 
 type StorageListener = () => void;
@@ -64,6 +64,32 @@ export const resetToSeedData = () => {
 export const getUsers = (): User[] => getStored(KEYS.USERS, INITIAL_USERS);
 export const getCurrentUser = (): User => getStored(KEYS.CURRENT_USER, INITIAL_USERS[0]);
 export const setCurrentUser = (user: User) => setStored(KEYS.CURRENT_USER, user);
+export const updateUser = (user: User) => {
+  const users = getUsers().map((u) => (u.id === user.id ? user : u));
+  setStored(KEYS.USERS, users);
+  const currentUser = getCurrentUser();
+  if (currentUser.id === user.id) {
+    setCurrentUser(user);
+  }
+
+  // If this user is a parent or student, update the linked student info
+  if (user.studentId && (user.role === 'parent' || user.role === 'student')) {
+    const students = getStudents();
+    const updatedStudents = students.map(s => {
+      if (s.id === user.studentId) {
+        if (user.role === 'student') {
+          return { ...s, name: user.name, phone: user.phone };
+        } else if (user.role === 'parent') {
+          // Keep name format for parent user, update only phone and extract name if we want, but it's risky
+          // A simpler approach is just to update the parent phone, and let the teacher edit the actual parent name
+          return { ...s, parentPhone: user.phone };
+        }
+      }
+      return s;
+    });
+    setStored(KEYS.STUDENTS, updatedStudents);
+  }
+};
 
 // Groups
 export const getGroups = (): Group[] => getStored(KEYS.GROUPS, INITIAL_GROUPS);
@@ -87,29 +113,108 @@ export const deleteGroup = (id: string) => {
 
 // Students
 export const getStudents = (): Student[] => getStored(KEYS.STUDENTS, INITIAL_STUDENTS);
-export const addStudent = (student: Omit<Student, 'id'>): Student => {
+export const addStudent = (student: Omit<Student, 'id'>, password?: string): Student => {
   const students = getStudents();
   const newStudent: Student = {
     ...student,
     id: 'stu_' + Date.now() + Math.random().toString(36).substring(2, 5),
+    password,
   };
   setStored(KEYS.STUDENTS, [newStudent, ...students]);
+
+  // Create Parent and Student User Accounts
+  if (password) {
+    const currentUsers = getUsers();
+    const parentId = 'user_parent_' + newStudent.id;
+    const parentUser: User = {
+      id: parentId,
+      name: `PH em ${newStudent.name} (${newStudent.parentName})`,
+      email: newStudent.parentEmail || '',
+      phone: newStudent.parentPhone,
+      role: 'parent',
+      password: password,
+      studentId: newStudent.id,
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${newStudent.parentName}`,
+    };
+    const studentUser: User = {
+      id: 'user_student_' + newStudent.id,
+      name: newStudent.name,
+      email: '',
+      phone: newStudent.phone || newStudent.parentPhone,
+      role: 'student',
+      password: password,
+      studentId: newStudent.id,
+      parentId: parentId,
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${newStudent.name}`,
+    };
+    setStored(KEYS.USERS, [...currentUsers, parentUser, studentUser]);
+  }
+
   return newStudent;
 };
 
-export const addStudentsBulk = (newStudentsData: Omit<Student, 'id'>[]): Student[] => {
+export const addStudentsBulk = (newStudentsData: Omit<Student, 'id'>[], password?: string): Student[] => {
   const students = getStudents();
   const created: Student[] = newStudentsData.map((s, idx) => ({
     ...s,
     id: 'stu_' + (Date.now() + idx) + Math.random().toString(36).substring(2, 5),
+    password,
   }));
   setStored(KEYS.STUDENTS, [...created, ...students]);
+
+  if (password) {
+    const currentUsers = getUsers();
+    const newUsers: User[] = [];
+    created.forEach((newStudent) => {
+      const parentId = 'user_parent_' + newStudent.id;
+      newUsers.push({
+        id: parentId,
+        name: `PH em ${newStudent.name} (${newStudent.parentName})`,
+        email: newStudent.parentEmail || '',
+        phone: newStudent.parentPhone,
+        role: 'parent',
+        password: password,
+        studentId: newStudent.id,
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${newStudent.parentName}`,
+      });
+      newUsers.push({
+        id: 'user_student_' + newStudent.id,
+        name: newStudent.name,
+        email: '',
+        phone: newStudent.phone || newStudent.parentPhone,
+        role: 'student',
+        password: password,
+        studentId: newStudent.id,
+        parentId: parentId,
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${newStudent.name}`,
+      });
+    });
+    setStored(KEYS.USERS, [...currentUsers, ...newUsers]);
+  }
+
   return created;
 };
 
 export const updateStudent = (student: Student) => {
   const students = getStudents().map((s) => (s.id === student.id ? student : s));
   setStored(KEYS.STUDENTS, students);
+
+  // Update associated users
+  const currentUsers = getUsers();
+  const updatedUsers = currentUsers.map(user => {
+    if (user.studentId === student.id) {
+      const isParent = user.role === 'parent';
+      return {
+        ...user,
+        name: isParent ? `PH em ${student.name} (${student.parentName})` : student.name,
+        email: isParent ? (student.parentEmail || '') : '',
+        phone: isParent ? student.parentPhone : (student.phone || student.parentPhone),
+        password: student.password || user.password,
+      };
+    }
+    return user;
+  });
+  setStored(KEYS.USERS, updatedUsers);
 };
 
 export const deleteStudent = (id: string) => {

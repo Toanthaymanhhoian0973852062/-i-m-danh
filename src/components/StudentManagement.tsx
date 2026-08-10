@@ -24,7 +24,9 @@ import {
   BarChart2, 
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export const StudentManagement: React.FC = () => {
@@ -49,6 +51,8 @@ export const StudentManagement: React.FC = () => {
   const [groupId, setGroupId] = useState(groups[0]?.id || '');
   const [startDate, setStartDate] = useState('2026-08-10');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
+  const [loginPassword, setLoginPassword] = useState('123456');
+  const [showLoginPassword, setShowLoginPassword] = useState(true);
 
   // Bulk Import text area
   const [bulkRawText, setBulkRawText] = useState(
@@ -69,6 +73,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     setGroupId(groups[0]?.id || '');
     setStartDate('2026-08-10');
     setStatus('active');
+    setLoginPassword('123456');
     setSingleModalOpen(true);
   };
 
@@ -84,6 +89,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     setGroupId(stu.groupId);
     setStartDate(stu.startDate);
     setStatus(stu.status);
+    setLoginPassword(stu.password || '123456');
     setSingleModalOpen(true);
   };
 
@@ -104,6 +110,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
         groupId,
         startDate,
         status,
+        password: loginPassword,
       });
     } else {
       addStudent({
@@ -117,7 +124,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
         groupId,
         startDate,
         status,
-      });
+      }, loginPassword);
     }
 
     setSingleModalOpen(false);
@@ -149,7 +156,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     });
 
     if (newStudentsPayload.length > 0) {
-      addStudentsBulk(newStudentsPayload);
+      addStudentsBulk(newStudentsPayload, '123456');
       setBulkModalOpen(false);
     }
   };
@@ -280,6 +287,9 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
                         </button>
                         <div className="text-[11px] text-slate-400">
                           SĐT: {stu.phone || 'Chưa cập nhật'}
+                        </div>
+                        <div className="text-[11px] text-amber-600 font-semibold mt-0.5">
+                          Mật khẩu: {stu.password || '123456'}
                         </div>
                       </td>
                       <td className="py-3 px-4 font-bold text-slate-700">Lớp {stu.class}</td>
@@ -436,6 +446,26 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
                         onChange={(e) => setParentEmail(e.target.value)}
                         className="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">Mật Khẩu Đăng Nhập * (Cho cả PH và HS)</label>
+                    <div className="relative">
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        placeholder="Nhập mật khẩu mặc định (vd: 123456)"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="w-full p-2.5 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-amber-50 border-amber-200"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                      >
+                        {showLoginPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
                     </div>
                   </div>
                 </div>

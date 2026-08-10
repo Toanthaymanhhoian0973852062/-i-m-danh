@@ -24,41 +24,51 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
   const users = getUsers();
-  const [activeTab, setActiveTab] = useState<'teacher' | 'parent' | 'student'>('parent');
+  const [activeTab, setActiveTab] = useState<'teacher' | 'parent' | 'student'>(
+    (localStorage.getItem('tm_last_tab') as any) || 'teacher'
+  );
   
   // Login form state
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState(localStorage.getItem('tm_last_id') || '');
+  const [password, setPassword] = useState(localStorage.getItem('tm_last_pwd') || '');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  const teacher = users.find((u) => u.role === 'teacher') || users[0];
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    let successUser = null;
+
     // Mock Authentication Logic
     if (activeTab === 'teacher') {
-      if (identifier === 'toanthaymanh11293@gmail.com' && password === 'phuocphu2024') {
-        onSelectUser(teacher);
+      const foundTeacher = users.find(u => u.role === 'teacher' && u.email === identifier);
+      if (foundTeacher && password === (foundTeacher.password || 'phuocphu2024')) {
+        successUser = foundTeacher;
       } else {
         setError('Email hoặc Mã bảo mật không chính xác.');
       }
     } else if (activeTab === 'parent') {
       const foundParent = users.find(u => u.role === 'parent' && u.phone === identifier);
-      if (foundParent && password === '123456') {
-        onSelectUser(foundParent);
+      if (foundParent && password === (foundParent.password || '123456')) {
+        successUser = foundParent;
       } else {
         setError('Số điện thoại hoặc mật khẩu không chính xác.');
       }
     } else if (activeTab === 'student') {
       const foundStudent = users.find(u => u.role === 'student' && u.phone === identifier);
-      if (foundStudent && password === '123456') {
-        onSelectUser(foundStudent);
+      if (foundStudent && password === (foundStudent.password || '123456')) {
+        successUser = foundStudent;
       } else {
         setError('SĐT học sinh hoặc mật khẩu không chính xác.');
       }
+    }
+
+    if (successUser) {
+      localStorage.setItem('tm_last_tab', activeTab);
+      localStorage.setItem('tm_last_id', identifier);
+      localStorage.setItem('tm_last_pwd', password);
+      onSelectUser(successUser);
     }
   };
 

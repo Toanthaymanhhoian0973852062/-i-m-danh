@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { getUsers, setCurrentUser, getNotifications } from '../services/storageService';
+import { ProfileModal } from './ProfileModal';
 import { 
   GraduationCap, 
   Users, 
@@ -34,22 +35,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const allUsers = getUsers();
 
-  const handleSwitchUser = (user: User) => {
-    setCurrentUser(user);
-    onUserChange(user);
-    setRoleMenuOpen(false);
-    setMobileMenuOpen(false);
-    
-    // Set default tab based on role
-    if (user.role === 'parent') {
-      setActiveTab('parent_home');
-    } else if (user.role === 'student') {
-      setActiveTab('student_home');
-    } else {
-      setActiveTab('dashboard');
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('tm_last_tab');
+    localStorage.removeItem('tm_last_id');
+    localStorage.removeItem('tm_last_pwd');
+    setActiveTab('landing');
   };
 
   interface NavItem {
@@ -154,39 +147,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {roleMenuOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 divide-y divide-slate-100">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 divide-y divide-slate-100">
                   <div className="px-3.5 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>Đổi tài khoản</span>
+                    <span>Tùy chọn</span>
                   </div>
                   <div className="py-1">
-                    {allUsers.map((u) => (
-                      <button
-                        key={u.id}
-                        onClick={() => handleSwitchUser(u)}
-                        className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition ${
-                          currentUser.id === u.id ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700'
-                        }`}
-                      >
-                        <div className="truncate">
-                          <div className="font-bold text-slate-800">{u.name}</div>
-                          <div className="text-[10px] text-slate-400 truncate">{u.email}</div>
-                        </div>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase ${
-                          u.role === 'teacher' ? 'bg-amber-100 text-amber-800' :
-                          u.role === 'parent' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {u.role === 'teacher' ? 'Giáo viên' : u.role === 'parent' ? 'Phụ huynh' : 'Học sinh'}
-                        </span>
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => {
+                        setRoleMenuOpen(false);
+                        setProfileModalOpen(true);
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      Thông tin cá nhân
+                    </button>
                   </div>
                   <div className="p-2">
                     <button
-                      onClick={() => setActiveTab('landing')}
-                      className="w-full text-center py-2 text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 rounded-xl bg-slate-50 hover:bg-slate-100"
+                      onClick={handleLogout}
+                      className="w-full text-center py-2 text-xs font-bold text-red-600 hover:text-red-700 flex items-center justify-center space-x-1.5 rounded-xl bg-red-50 hover:bg-red-100 transition"
                     >
                       <LogOut className="w-3.5 h-3.5" />
-                      <span>Về Trang Đăng Nhập / Giới Thiệu</span>
+                      <span>Đăng xuất</span>
                     </button>
                   </div>
                 </div>
@@ -261,26 +243,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </div>
 
-          <div className="pt-3 border-t border-slate-800">
-            <div className="text-xs text-slate-400 font-semibold mb-2">Đổi tài khoản nhanh:</div>
-            <div className="grid grid-cols-1 gap-1">
-              {allUsers.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => handleSwitchUser(u)}
-                  className={`text-left px-3 py-1.5 rounded text-xs flex items-center justify-between ${
-                    currentUser.id === u.id ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'
-                  }`}
-                >
-                  <span>{u.name}</span>
-                  <span className="text-[10px] opacity-75 uppercase">
-                    ({u.role === 'teacher' ? 'GV' : u.role === 'parent' ? 'PH' : 'HS'})
-                  </span>
-                </button>
-              ))}
-            </div>
+          <div className="pt-3 border-t border-slate-800 space-y-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setProfileModalOpen(true);
+              }}
+              className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+            >
+              Thông tin cá nhân
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-slate-800 hover:text-red-300"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Đăng xuất</span>
+            </button>
           </div>
         </div>
+      )}
+
+      {profileModalOpen && (
+        <ProfileModal
+          user={currentUser}
+          onClose={() => setProfileModalOpen(false)}
+          onUpdate={(u) => {
+            onUserChange(u);
+            setProfileModalOpen(false);
+          }}
+        />
       )}
     </header>
   );
