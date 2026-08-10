@@ -7,7 +7,9 @@ import {
   addStudentsBulk, 
   updateStudent, 
   deleteStudent,
-  getStudentAttendanceStats
+  getStudentAttendanceStats,
+  addNotification,
+  getUsers
 } from '../services/storageService';
 import { 
   Users, 
@@ -26,7 +28,9 @@ import {
   Check,
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  Bell,
+  QrCode
 } from 'lucide-react';
 
 export const StudentManagement: React.FC = () => {
@@ -37,6 +41,13 @@ export const StudentManagement: React.FC = () => {
   const [filterGroupId, setFilterGroupId] = useState('all');
   const [singleModalOpen, setSingleModalOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
+  const [notifStudent, setNotifStudent] = useState<Student | null>(null);
+  const [notifType, setNotifType] = useState<'info' | 'reminder'>('info');
+  const [notifTitle, setNotifTitle] = useState('');
+  const [notifMessage, setNotifMessage] = useState('');
+  const [notifIncludeQR, setNotifIncludeQR] = useState(false);
+  
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [selectedStudentProfile, setSelectedStudentProfile] = useState<Student | null>(null);
 
@@ -169,6 +180,43 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
       deleteStudent(id);
       if (selectedStudentProfile?.id === id) setSelectedStudentProfile(null);
     }
+  };
+
+  const handleOpenNotifModal = (stu: Student) => {
+    setNotifStudent(stu);
+    setNotifType('info');
+    setNotifTitle('Thông báo học tập');
+    setNotifMessage(`Kính gửi phụ huynh em ${stu.name},\n\n`);
+    setNotifIncludeQR(false);
+    setNotifModalOpen(true);
+  };
+
+  const handleSendNotif = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notifStudent) return;
+    
+    const users = getUsers();
+    const parentUser = users.find(u => u.role === 'parent' && u.phone === notifStudent.parentPhone);
+    
+    let finalMessage = notifMessage;
+    if (notifIncludeQR) {
+      finalMessage += '\n\n[Đính kèm Mã QR Thanh toán - Giáo viên có thể bổ sung sau]';
+    }
+
+    addNotification({
+      userId: parentUser ? parentUser.id : 'unknown',
+      studentId: notifStudent.id,
+      studentName: notifStudent.name,
+      parentName: notifStudent.parentName,
+      parentPhone: notifStudent.parentPhone,
+      title: notifTitle,
+      message: finalMessage,
+      type: notifType,
+      channelsSent: ['In-App']
+    });
+
+    setNotifModalOpen(false);
+    alert('Đã gửi thông báo thành công cho phụ huynh!');
   };
 
   // Search & Filtered
@@ -323,6 +371,13 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end space-x-1">
+                          <button
+                            onClick={() => handleOpenNotifModal(stu)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50"
+                            title="Gửi thông báo"
+                          >
+                            <Bell className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => openEditModal(stu)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50"
@@ -630,6 +685,81 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
               Đóng
             </button>
 
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Notification to Parent */}
+      {notifModalOpen && notifStudent && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 my-auto">
+            <div className="bg-amber-600 p-4 text-white flex items-center justify-between">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Bell className="w-5 h-5" /> Gửi thông báo
+              </h3>
+              <button onClick={() => setNotifModalOpen(false)} className="text-amber-200 hover:text-white">✕</button>
+            </div>
+            
+            <form onSubmit={handleSendNotif} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Gửi đến</label>
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+                  Phụ huynh em: {notifStudent.name} <br/>
+                  <span className="text-slate-500 font-normal">{notifStudent.parentName} - {notifStudent.parentPhone}</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tiêu đề</label>
+                <input 
+                  type="text"
+                  required
+                  value={notifTitle}
+                  onChange={(e) => setNotifTitle(e.target.value)}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Nội dung</label>
+                <textarea 
+                  rows={4}
+                  required
+                  value={notifMessage}
+                  onChange={(e) => setNotifMessage(e.target.value)}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox"
+                  id="includeQR"
+                  checked={notifIncludeQR}
+                  onChange={(e) => setNotifIncludeQR(e.target.checked)}
+                  className="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded border-slate-300"
+                />
+                <label htmlFor="includeQR" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
+                  <QrCode className="w-4 h-4 text-slate-500" /> Đính kèm Mã QR (Thu học phí)
+                </label>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setNotifModalOpen(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md"
+                >
+                  Gửi Thông Báo
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
