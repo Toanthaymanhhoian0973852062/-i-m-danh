@@ -25,12 +25,18 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
   const users = getUsers();
   const [activeTab, setActiveTab] = useState<'teacher' | 'parent' | 'student'>(
-    (localStorage.getItem('tm_last_tab') as any) || 'teacher'
+    (localStorage.getItem('tm_last_tab') as any) || 'parent'
   );
   
   // Login form state
-  const [identifier, setIdentifier] = useState(localStorage.getItem('tm_last_id') || '');
-  const [password, setPassword] = useState(localStorage.getItem('tm_last_pwd') || '');
+  const [identifier, setIdentifier] = useState(() => {
+    const lastTab = localStorage.getItem('tm_last_tab');
+    return lastTab === 'teacher' ? '' : (localStorage.getItem('tm_last_id') || '');
+  });
+  const [password, setPassword] = useState(() => {
+    const lastTab = localStorage.getItem('tm_last_tab');
+    return lastTab === 'teacher' ? '' : (localStorage.getItem('tm_last_pwd') || '');
+  });
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -66,8 +72,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
 
     if (successUser) {
       localStorage.setItem('tm_last_tab', activeTab);
-      localStorage.setItem('tm_last_id', identifier);
-      localStorage.setItem('tm_last_pwd', password);
+      if (activeTab === 'teacher') {
+        localStorage.removeItem('tm_last_id');
+        localStorage.removeItem('tm_last_pwd');
+      } else {
+        localStorage.setItem('tm_last_id', identifier);
+        localStorage.setItem('tm_last_pwd', password);
+      }
       onSelectUser(successUser);
     }
   };
