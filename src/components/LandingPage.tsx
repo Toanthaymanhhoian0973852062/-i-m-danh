@@ -42,11 +42,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
 
     // Mock Authentication Logic
     if (activeTab === 'teacher') {
-      const foundTeacher = users.find(u => u.role === 'teacher' && u.email === identifier);
+      const foundTeacher = users.find(u => u.role === 'teacher' && (u.email === identifier || u.phone === identifier));
       if (foundTeacher && password === (foundTeacher.password || 'phuocphu2024')) {
         successUser = foundTeacher;
       } else {
-        setError('Email hoặc Mã bảo mật không chính xác.');
+        setError('Email/SĐT hoặc Mã bảo mật không chính xác.');
       }
     } else if (activeTab === 'parent') {
       const foundParent = users.find(u => u.role === 'parent' && u.phone === identifier);
@@ -125,24 +125,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
               {activeTab === 'teacher' && (
                 <div className="text-xs text-slate-500 bg-blue-50 p-3 rounded-xl mb-4 border border-blue-100">
                   <p className="font-bold text-blue-800 mb-1">Dành riêng cho giáo viên quản trị</p>
-                  Yêu cầu đăng nhập bằng Email và Mã bảo mật cấp riêng.
+                  Yêu cầu đăng nhập bằng Email/SĐT và Mã bảo mật cấp riêng.
                 </div>
               )}
               
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  {activeTab === 'teacher' ? 'Email Đăng nhập' : 'Số điện thoại'}
+                  {activeTab === 'teacher' ? 'Email / Số điện thoại' : 'Số điện thoại'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     {activeTab === 'teacher' ? (
-                      <Mail className="h-5 w-5 text-slate-400" />
+                      <div className="flex -space-x-1">
+                        <Mail className="h-5 w-5 text-slate-400" />
+                      </div>
                     ) : (
                       <Phone className="h-5 w-5 text-slate-400" />
                     )}
                   </div>
                   <input
-                    type={activeTab === 'teacher' ? 'email' : 'tel'}
+                    type={activeTab === 'teacher' ? 'text' : 'tel'}
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     className="pl-10 w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"

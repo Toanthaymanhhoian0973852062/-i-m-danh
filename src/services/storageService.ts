@@ -78,10 +78,8 @@ export const updateUser = (user: User) => {
     const updatedStudents = students.map(s => {
       if (s.id === user.studentId) {
         if (user.role === 'student') {
-          return { ...s, name: user.name, phone: user.phone };
+          return { ...s, name: user.name, phone: user.phone, password: user.password };
         } else if (user.role === 'parent') {
-          // Keep name format for parent user, update only phone and extract name if we want, but it's risky
-          // A simpler approach is just to update the parent phone, and let the teacher edit the actual parent name
           return { ...s, parentPhone: user.phone };
         }
       }
@@ -215,6 +213,15 @@ export const updateStudent = (student: Student) => {
     return user;
   });
   setStored(KEYS.USERS, updatedUsers);
+
+  // Sync with current user if they are affected
+  const currentUser = getCurrentUser();
+  if (currentUser?.studentId === student.id) {
+    const updatedCurrentUser = updatedUsers.find(u => u.id === currentUser.id);
+    if (updatedCurrentUser) {
+      setCurrentUser(updatedCurrentUser);
+    }
+  }
 };
 
 export const deleteStudent = (id: string) => {

@@ -49,7 +49,10 @@ export const StudentManagement: React.FC = () => {
   const [parentPhone, setParentPhone] = useState('');
   const [parentEmail, setParentEmail] = useState('');
   const [groupId, setGroupId] = useState(groups[0]?.id || '');
-  const [startDate, setStartDate] = useState('2026-08-10');
+    const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
   const [loginPassword, setLoginPassword] = useState('123456');
   const [showLoginPassword, setShowLoginPassword] = useState(true);
@@ -71,7 +74,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     setParentPhone('');
     setParentEmail('');
     setGroupId(groups[0]?.id || '');
-    setStartDate('2026-08-10');
+    setStartDate(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; });
     setStatus('active');
     setLoginPassword('123456');
     setSingleModalOpen(true);

@@ -41,26 +41,79 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   const [createSessionOpen, setCreateSessionOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState(groups[0]?.id || '');
-  const [sessionDate, setSessionDate] = useState('2026-08-10');
+  const [sessionDate, setSessionDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [sessionStartTime, setSessionStartTime] = useState('17:30');
   const [sessionEndTime, setSessionEndTime] = useState('19:00');
   const [sessionTopic, setSessionTopic] = useState('');
 
-  // Calculate statistics for TODAY (2026-08-10)
-  const todayDate = '2026-08-10';
-  const todaySessions = sessions.filter((s) => s.date === todayDate);
+  // Selected date for viewing schedule
+  const [selectedViewDate, setSelectedViewDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
 
-  // Collect student stats for today's completed attendance
-  const todaySessionIds = new Set(todaySessions.map((s) => s.id));
-  const todayRecords = attendance.filter((a) => todaySessionIds.has(a.sessionId));
+  const isGroupScheduledOnDate = (schedule: string, dateStr: string) => {
+    const dateObj = new Date(dateStr);
+    const day = dateObj.getDay(); 
+    const lowerSchedule = schedule.toLowerCase();
+    
+    if (day === 1) return lowerSchedule.includes('2') || lowerSchedule.includes('hai');
+    if (day === 2) return lowerSchedule.includes('3') || lowerSchedule.includes('ba');
+    if (day === 3) return lowerSchedule.includes('4') || lowerSchedule.includes('tư') || lowerSchedule.includes('tu');
+    if (day === 4) return lowerSchedule.includes('5') || lowerSchedule.includes('năm') || lowerSchedule.includes('nam');
+    if (day === 5) return lowerSchedule.includes('6') || lowerSchedule.includes('sáu') || lowerSchedule.includes('sau');
+    if (day === 6) return lowerSchedule.includes('7') || lowerSchedule.includes('bảy') || lowerSchedule.includes('bay');
+    if (day === 0) return lowerSchedule.includes('cn') || lowerSchedule.includes('chủ nhật') || lowerSchedule.includes('chu nhat');
+    return false;
+  };
 
-  const presentTodayCount = todayRecords.filter((r) => r.status === 'present').length;
-  const lateTodayCount = todayRecords.filter((r) => r.status === 'late').length;
-  const absentTodayCount = todayRecords.filter(
+  const recordedViewDateSessions = sessions.filter((s) => s.date === selectedViewDate);
+  const recordedGroupIds = new Set(recordedViewDateSessions.map(s => s.groupId));
+
+  const pendingSessions: Session[] = groups
+    .filter(g => g.status === 'active' && !recordedGroupIds.has(g.id) && isGroupScheduledOnDate(g.schedule, selectedViewDate))
+    .map(g => ({
+      id: 'synthetic_' + g.id,
+      groupId: g.id,
+      date: selectedViewDate,
+      startTime: g.startTime,
+      endTime: g.endTime,
+      isCompleted: false,
+    }));
+
+  const viewDateSessions = [...recordedViewDateSessions, ...pendingSessions].sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+
+  // Collect student stats for selected date's completed attendance
+  const viewDateSessionIds = new Set(viewDateSessions.map((s) => s.id));
+  const viewDateRecords = attendance.filter((a) => viewDateSessionIds.has(a.sessionId));
+
+  const presentTodayCount = viewDateRecords.filter((r) => r.status === 'present').length;
+  const lateTodayCount = viewDateRecords.filter((r) => r.status === 'late').length;
+  const absentTodayCount = viewDateRecords.filter(
     (r) => r.status === 'excused_absent' || r.status === 'unexcused_absent'
   ).length;
 
   const totalActiveStudents = students.filter((s) => s.status === 'active').length;
+
+  const handleOpenQuickAttendance = (ses: Session) => {
+    if (ses.id.startsWith('synthetic_')) {
+      const realSession = addSession({
+        groupId: ses.groupId,
+        date: ses.date,
+        startTime: ses.startTime,
+        endTime: ses.endTime,
+        topic: ses.topic
+      });
+      onOpenQuickAttendance(realSession);
+    } else {
+      onOpenQuickAttendance(ses);
+    }
+  };
+
 
   const handleCreateSession = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +150,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               Xin chào, Thầy Mạnh! 👋
             </h1>
             <p className="text-blue-100/80 text-sm mt-1 max-w-2xl">
-              Hôm nay có <span className="font-bold text-amber-300">{todaySessions.length} buổi học</span> scheduled. Chọn buổi học bên dưới để thực hiện điểm danh nhanh trong 10 giây.
+              Hệ thống Quản lý Giảng dạy & Điểm danh.
+              {viewDateSessions.length > 0 && (
+                <span className="block mt-1">
+                  Ngày <span className="font-bold text-amber-300">{selectedViewDate.split('-').reverse().join('/')}</span> có <span className="font-bold text-amber-300">{viewDateSessions.length} buổi học</span> scheduled. Chọn buổi học bên dưới để thực hiện điểm danh.
+                </span>
+              )}
             </p>
           </div>
 
@@ -192,29 +250,37 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
               <h2 className="text-lg font-extrabold text-slate-900 tracking-tight uppercase">
-                BUỔI HỌC HÔM NAY (10/08/2026)
+                LỊCH DẠY
               </h2>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Danh sách các nhóm học có ca dạy hôm nay. Nhấn "Điểm danh" để thực hiện siêu nhanh.
+              Danh sách các nhóm học có ca dạy. Nhấn "Điểm danh" để thực hiện siêu nhanh.
             </p>
           </div>
-
-          <button
-            onClick={() => setCreateSessionOpen(true)}
-            className="inline-flex items-center space-x-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-lg transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Tạo Buổi Học Mới</span>
-          </button>
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <input
+              type="date"
+              value={selectedViewDate}
+              onChange={(e) => setSelectedViewDate(e.target.value)}
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={() => setCreateSessionOpen(true)}
+              className="inline-flex items-center space-x-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-lg transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Tạo Buổi Học Mới</span>
+            </button>
+          </div>
         </div>
 
-        {todaySessions.length === 0 ? (
+        {viewDateSessions.length === 0 ? (
           <div className="p-8 text-center text-slate-500">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <p className="font-semibold text-slate-700">Không có buổi học nào scheduled hôm nay.</p>
+            <p className="font-semibold text-slate-700">Không có buổi học nào scheduled trong ngày này.</p>
             <button
               onClick={() => setCreateSessionOpen(true)}
               className="mt-3 inline-flex items-center space-x-2 text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-lg"
@@ -225,7 +291,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {todaySessions.map((ses) => {
+            {viewDateSessions.map((ses) => {
               const group = groups.find((g) => g.id === ses.groupId);
               const groupStudents = students.filter((s) => s.groupId === ses.groupId && s.status === 'active');
               
@@ -295,7 +361,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     )}
 
                     <button
-                      onClick={() => onOpenQuickAttendance(ses)}
+                      onClick={() => handleOpenQuickAttendance(ses)}
                       className={`w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center space-x-2 ${
                         isChecked
                           ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
