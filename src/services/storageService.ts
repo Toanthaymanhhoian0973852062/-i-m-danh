@@ -2,13 +2,13 @@ import { Group, Student, Session, AttendanceRecord, NotificationItem, User, Atte
 import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_STUDENTS, INITIAL_SESSIONS, INITIAL_ATTENDANCE, INITIAL_NOTIFICATIONS } from '../data/mockSeedData';
 
 const KEYS = {
-  USERS: 'tm_users_v1',
-  GROUPS: 'tm_groups_v1',
-  STUDENTS: 'tm_students_v1',
-  SESSIONS: 'tm_sessions_v1',
-  ATTENDANCE: 'tm_attendance_v1',
-  NOTIFICATIONS: 'tm_notifications_v1',
-  CURRENT_USER: 'tm_current_user_v1',
+  USERS: 'tm_users_v2',
+  GROUPS: 'tm_groups_v2',
+  STUDENTS: 'tm_students_v2',
+  SESSIONS: 'tm_sessions_v2',
+  ATTENDANCE: 'tm_attendance_v2',
+  NOTIFICATIONS: 'tm_notifications_v2',
+  CURRENT_USER: 'tm_current_user_v2',
 };
 
 type StorageListener = () => void;

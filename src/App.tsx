@@ -21,11 +21,7 @@ import { LandingPage } from './components/LandingPage';
 
 export default function App() {
   const [currentUser, setCurrUser] = useState<User>(() => getCurrentUser());
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    if (currentUser.role === 'parent') return 'parent_home';
-    if (currentUser.role === 'student') return 'student_home';
-    return 'dashboard';
-  });
+  const [activeTab, setActiveTab] = useState<string>('landing');
 
   const [quickAttendanceSession, setQuickAttendanceSession] = useState<Session | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -60,13 +56,15 @@ export default function App() {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-blue-500 selection:text-white">
       
       {/* Top Navigation */}
-      <Navbar
-        currentUser={currentUser}
-        onUserChange={handleUserChange}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        unreadCount={unreadCount}
-      />
+      {activeTab !== 'landing' && (
+        <Navbar
+          currentUser={currentUser}
+          onUserChange={handleUserChange}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          unreadCount={unreadCount}
+        />
+      )}
 
       {/* Main Container Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">

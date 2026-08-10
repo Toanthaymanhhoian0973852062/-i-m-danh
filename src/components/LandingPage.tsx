@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
-import { getUsers, setCurrentUser } from '../services/storageService';
+import { getUsers } from '../services/storageService';
 import { 
   GraduationCap, 
   Sparkles, 
@@ -10,7 +10,12 @@ import {
   ShieldCheck, 
   Users, 
   ArrowRight,
-  BookOpen
+  BookOpen,
+  KeyRound,
+  Phone,
+  Mail,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -19,10 +24,43 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
   const users = getUsers();
+  const [activeTab, setActiveTab] = useState<'teacher' | 'parent' | 'student'>('parent');
+  
+  // Login form state
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const teacher = users.find((u) => u.role === 'teacher') || users[0];
-  const parent = users.find((u) => u.role === 'parent') || users[1];
-  const student = users.find((u) => u.role === 'student') || users[3];
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Mock Authentication Logic
+    if (activeTab === 'teacher') {
+      if (identifier === 'toanthaymanh11293@gmail.com' && password === 'phuocphu2024') {
+        onSelectUser(teacher);
+      } else {
+        setError('Email hoặc Mã bảo mật không chính xác.');
+      }
+    } else if (activeTab === 'parent') {
+      const foundParent = users.find(u => u.role === 'parent' && u.phone === identifier);
+      if (foundParent && password === '123456') {
+        onSelectUser(foundParent);
+      } else {
+        setError('Số điện thoại hoặc mật khẩu không chính xác.');
+      }
+    } else if (activeTab === 'student') {
+      const foundStudent = users.find(u => u.role === 'student' && u.phone === identifier);
+      if (foundStudent && password === '123456') {
+        onSelectUser(foundStudent);
+      } else {
+        setError('SĐT học sinh hoặc mật khẩu không chính xác.');
+      }
+    }
+  };
 
   return (
     <div className="min-h-[85vh] flex flex-col justify-between py-8 px-4 sm:px-6 max-w-5xl mx-auto">
@@ -47,86 +85,106 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
           Ứng dụng giúp giáo viên điểm danh cực nhanh trong 10 giây, tự động phát thông báo điện tử tới phụ huynh khi con vắng hoặc đi trễ, quản lý chuyên cần thông minh.
         </p>
 
-        {/* Login Role Quick Buttons */}
-        <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          
-          {/* Teacher Login */}
-          <button
-            onClick={() => onSelectUser(teacher)}
-            className="group p-5 bg-gradient-to-br from-blue-900 to-indigo-900 hover:from-blue-800 hover:to-indigo-800 text-white rounded-2xl shadow-xl hover:shadow-2xl transition transform hover:-translate-y-1 text-left border border-blue-700/50 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-500/30 flex items-center justify-center mb-3 text-2xl">
-                👨‍🏫
-              </div>
-              <span className="text-[10px] uppercase font-extrabold text-blue-300 tracking-wider block">
-                Tài khoản Giáo viên
-              </span>
-              <h3 className="text-lg font-bold mt-0.5 group-hover:text-amber-300 transition">
-                Đăng nhập Giáo viên
-              </h3>
-              <p className="text-xs text-blue-100/80 mt-1">
-                Quản lý nhóm, điểm danh nhanh, xem báo cáo toàn hệ thống.
-              </p>
+        {/* Login Form Section */}
+        <div className="pt-8 max-w-md mx-auto w-full">
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+            
+            {/* Role Tabs */}
+            <div className="flex border-b border-slate-100 bg-slate-50">
+              <button 
+                onClick={() => { setActiveTab('parent'); setError(''); setIdentifier(''); setPassword(''); }}
+                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'parent' ? 'bg-white text-blue-700 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Phụ huynh
+              </button>
+              <button 
+                onClick={() => { setActiveTab('student'); setError(''); setIdentifier(''); setPassword(''); }}
+                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'student' ? 'bg-white text-blue-700 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Học sinh
+              </button>
+              <button 
+                onClick={() => { setActiveTab('teacher'); setError(''); setIdentifier(''); setPassword(''); }}
+                className={`flex-1 py-4 text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'teacher' ? 'bg-white text-blue-700 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Giáo viên
+              </button>
             </div>
-            <div className="mt-4 pt-3 border-t border-blue-700/40 text-xs font-bold text-blue-300 flex items-center justify-between">
-              <span>{teacher.name}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-            </div>
-          </button>
 
-          {/* Parent Login */}
-          <button
-            onClick={() => onSelectUser(parent)}
-            className="group p-5 bg-white hover:bg-slate-50 text-slate-900 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left border border-slate-200 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center mb-3 text-2xl">
-                👨‍👩‍👦
+            <form onSubmit={handleLogin} className="p-6 space-y-4 text-left">
+              {activeTab === 'teacher' && (
+                <div className="text-xs text-slate-500 bg-blue-50 p-3 rounded-xl mb-4 border border-blue-100">
+                  <p className="font-bold text-blue-800 mb-1">Dành riêng cho giáo viên quản trị</p>
+                  Yêu cầu đăng nhập bằng Email và Mã bảo mật cấp riêng.
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  {activeTab === 'teacher' ? 'Email Đăng nhập' : 'Số điện thoại'}
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    {activeTab === 'teacher' ? (
+                      <Mail className="h-5 w-5 text-slate-400" />
+                    ) : (
+                      <Phone className="h-5 w-5 text-slate-400" />
+                    )}
+                  </div>
+                  <input
+                    type={activeTab === 'teacher' ? 'email' : 'tel'}
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    className="pl-10 w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    placeholder={activeTab === 'teacher' ? 'Email Đăng nhập' : 'Nhập số điện thoại'}
+                    required
+                  />
+                </div>
               </div>
-              <span className="text-[10px] uppercase font-extrabold text-purple-600 tracking-wider block">
-                Tài khoản Phụ huynh
-              </span>
-              <h3 className="text-lg font-bold text-slate-900 mt-0.5 group-hover:text-purple-700 transition">
-                Đăng nhập Phụ huynh
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Xem lịch học của con, tình hình điểm danh và nhận thông báo tức thì.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-purple-700 flex items-center justify-between">
-              <span>PH em Nguyễn Văn An</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-            </div>
-          </button>
 
-          {/* Student Login */}
-          <button
-            onClick={() => onSelectUser(student)}
-            className="group p-5 bg-white hover:bg-slate-50 text-slate-900 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 text-left border border-slate-200 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3 text-2xl">
-                🎓
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  {activeTab === 'teacher' ? 'Mã Bảo Mật (Key)' : 'Mật khẩu'}
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <KeyRound className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    placeholder="Nhập mật khẩu..."
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
-              <span className="text-[10px] uppercase font-extrabold text-emerald-600 tracking-wider block">
-                Tài khoản Học sinh
-              </span>
-              <h3 className="text-lg font-bold text-slate-900 mt-0.5 group-hover:text-emerald-700 transition">
-                Đăng nhập Học sinh
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Theo dõi lịch học toán cá nhân, chuyên cần và bài tập.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-emerald-700 flex items-center justify-between">
-              <span>Em Nguyễn Văn An</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-            </div>
-          </button>
 
+              {error && (
+                <div className="text-xs text-red-600 bg-red-50 p-3 rounded-xl border border-red-100 font-medium">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all flex justify-center items-center gap-2"
+              >
+                <span>ĐĂNG NHẬP</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+          </div>
         </div>
-
       </div>
 
       {/* Feature Highlights Grid */}
