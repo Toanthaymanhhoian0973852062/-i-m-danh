@@ -1,4 +1,4 @@
-import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats } from '../types';
+import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats, FeeConfig, PaymentQRCode, TuitionRecord } from '../types';
 import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_STUDENTS, INITIAL_SESSIONS, INITIAL_ATTENDANCE, INITIAL_NOTIFICATIONS } from '../data/mockSeedData';
 
 const KEYS = {
@@ -9,6 +9,9 @@ const KEYS = {
   ATTENDANCE: 'tm_attendance_v3',
   NOTIFICATIONS: 'tm_notifications_v3',
   CURRENT_USER: 'tm_current_user_v3',
+  FEE_CONFIGS: 'tm_fee_configs_v3',
+  PAYMENT_QR: 'tm_payment_qr_v3',
+  TUITION_RECORDS: 'tm_tuition_records_v3',
 };
 
 type StorageListener = () => void;
@@ -90,7 +93,23 @@ export const updateUser = (user: User) => {
 };
 
 // Groups
-export const getGroups = (): Group[] => getStored(KEYS.GROUPS, INITIAL_GROUPS);
+export const getGroups = (): Group[] => {
+  const groups = getStored<Group[]>(KEYS.GROUPS, INITIAL_GROUPS);
+  return groups.sort((a, b) => {
+    const extractGrade = (str: string) => {
+      if (!str) return 99;
+      const match = str.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 99;
+    };
+    const gradeA = Math.min(extractGrade(a.grade), extractGrade(a.name));
+    const gradeB = Math.min(extractGrade(b.grade), extractGrade(b.name));
+    
+    if (gradeA !== gradeB) {
+      return gradeA - gradeB;
+    }
+    return a.name.localeCompare(b.name, 'vi');
+  });
+};
 export const addGroup = (group: Omit<Group, 'id'>): Group => {
   const groups = getGroups();
   const newGroup: Group = {
@@ -362,4 +381,66 @@ export const getGroupAttendanceStats = (groupId: string): AttendanceStats => {
     unexcusedAbsentCount: unexcused,
     attendanceRate: rate,
   };
+};
+
+// FeeConfigs
+export const getFeeConfigs = (): FeeConfig[] => getStored(KEYS.FEE_CONFIGS, []);
+export const saveFeeConfig = (config: FeeConfig) => {
+  const configs = getFeeConfigs();
+  const existing = configs.findIndex(c => c.id === config.id);
+  if (existing >= 0) {
+    configs[existing] = config;
+  } else {
+    configs.push(config);
+  }
+  setStored(KEYS.FEE_CONFIGS, configs);
+};
+export const deleteFeeConfig = (id: string) => {
+  const configs = getFeeConfigs().filter(c => c.id !== id);
+  setStored(KEYS.FEE_CONFIGS, configs);
+};
+
+// PaymentQRCodes
+export const getPaymentQRCodes = (): PaymentQRCode[] => getStored(KEYS.PAYMENT_QR, []);
+export const savePaymentQRCode = (qr: PaymentQRCode) => {
+  const qrs = getPaymentQRCodes();
+  if (qr.isDefault) {
+    qrs.forEach(q => q.isDefault = false); // only one default
+  }
+  const existing = qrs.findIndex(q => q.id === qr.id);
+  if (existing >= 0) {
+    qrs[existing] = qr;
+  } else {
+    qrs.push(qr);
+  }
+  setStored(KEYS.PAYMENT_QR, qrs);
+};
+export const deletePaymentQRCode = (id: string) => {
+  const qrs = getPaymentQRCodes().filter(q => q.id !== id);
+  setStored(KEYS.PAYMENT_QR, qrs);
+};
+
+// TuitionRecords
+export const getTuitionRecords = (): TuitionRecord[] => getStored(KEYS.TUITION_RECORDS, []);
+export const saveTuitionRecord = (record: TuitionRecord) => {
+  const records = getTuitionRecords();
+  const existing = records.findIndex(r => r.id === record.id);
+  if (existing >= 0) {
+    records[existing] = record;
+  } else {
+    records.push(record);
+  }
+  setStored(KEYS.TUITION_RECORDS, records);
+};
+export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
+  const allRecords = getTuitionRecords();
+  records.forEach(r => {
+    const existing = allRecords.findIndex(ar => ar.id === r.id);
+    if (existing >= 0) {
+      allRecords[existing] = r;
+    } else {
+      allRecords.push(r);
+    }
+  });
+  setStored(KEYS.TUITION_RECORDS, allRecords);
 };

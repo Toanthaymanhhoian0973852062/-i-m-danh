@@ -12,6 +12,7 @@ import { TeacherDashboard } from './components/TeacherDashboard';
 import { QuickAttendanceModal } from './components/QuickAttendanceModal';
 import { GroupManagement } from './components/GroupManagement';
 import { StudentManagement } from './components/StudentManagement';
+import { TuitionManagement } from './components/TuitionManagement';
 import { AttendanceHistory } from './components/AttendanceHistory';
 import { ParentView } from './components/ParentView';
 import { StudentView } from './components/StudentView';
@@ -81,6 +82,10 @@ export default function App() {
 
         {activeTab === 'groups' && (
           <GroupManagement />
+        )}
+
+        {activeTab === 'tuition' && (
+          <TuitionManagement />
         )}
 
         {activeTab === 'students' && (

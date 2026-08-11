@@ -15,7 +15,8 @@ import {
   ChevronDown,
   BookOpen,
   Sparkles,
-  ShieldAlert
+  ShieldAlert,
+  Banknote
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -56,6 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'groups', label: 'Nhóm học', icon: BookOpen },
     { id: 'students', label: 'Học sinh', icon: Users },
+    { id: 'tuition', label: 'Học phí', icon: Banknote },
     { id: 'attendance_history', label: 'Lịch sử điểm danh', icon: UserCheck },
     { id: 'reports', label: 'Báo cáo', icon: Calendar },
     { id: 'notifications', label: 'Thông báo', icon: Bell, badge: unreadCount },

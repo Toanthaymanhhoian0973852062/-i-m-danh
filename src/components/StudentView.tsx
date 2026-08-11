@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../types';
 import { getStudents, getGroups, getSessions, getAttendance, getStudentAttendanceStats } from '../services/storageService';
-import { GraduationCap, Calendar, Clock, Award, CheckCircle2, UserX } from 'lucide-react';
+import { GraduationCap, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle } from 'lucide-react';
 
 interface StudentViewProps {
   currentUser: User;

@@ -30,7 +30,8 @@ import {
   Eye,
   EyeOff,
   Bell,
-  QrCode
+  QrCode,
+  Banknote
 } from 'lucide-react';
 
 export const StudentManagement: React.FC = () => {
@@ -41,6 +42,19 @@ export const StudentManagement: React.FC = () => {
   const [filterGroupId, setFilterGroupId] = useState('all');
   const [singleModalOpen, setSingleModalOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkNotifModalOpen, setBulkNotifModalOpen] = useState(false);
+  const [bulkNotifGroupId, setBulkNotifGroupId] = useState('');
+  const [bulkNotifTitle, setBulkNotifTitle] = useState('');
+  const [bulkNotifMessage, setBulkNotifMessage] = useState('');
+  const [bulkNotifIncludeQR, setBulkNotifIncludeQR] = useState(false);
+  const [bulkNotifImageBase64, setBulkNotifImageBase64] = useState('');
+  
+  const [tuitionNotifModalOpen, setTuitionNotifModalOpen] = useState(false);
+  const [tuitionNotifGroupId, setTuitionNotifGroupId] = useState('');
+  const [tuitionNotifMonth, setTuitionNotifMonth] = useState((new Date().getMonth() + 1).toString());
+  const [tuitionNotifIncludeQR, setTuitionNotifIncludeQR] = useState(false);
+  const [tuitionNotifImageBase64, setTuitionNotifImageBase64] = useState('');
+
   const [notifModalOpen, setNotifModalOpen] = useState(false);
   const [notifStudent, setNotifStudent] = useState<Student | null>(null);
   const [notifType, setNotifType] = useState<'info' | 'reminder'>('info');
@@ -193,6 +207,102 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     setNotifModalOpen(true);
   };
 
+  const handleSendTuitionNotif = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tuitionNotifGroupId) {
+      alert('Vui lòng chọn nhóm/lớp!');
+      return;
+    }
+    
+    const targetStudents = students.filter(s => s.groupId === tuitionNotifGroupId);
+    if (targetStudents.length === 0) {
+      alert('Nhóm này chưa có học sinh nào!');
+      return;
+    }
+
+    const group = groups.find(g => g.id === tuitionNotifGroupId);
+    const users = getUsers();
+    
+    let qrSuffix = '';
+    if (tuitionNotifIncludeQR) {
+      qrSuffix += '\n\n[Đính kèm Mã QR Thanh toán - Giáo viên có thể bổ sung sau]';
+      if (tuitionNotifImageBase64) {
+        qrSuffix += `\n[QR_IMAGE_BASE64]${tuitionNotifImageBase64}[/QR_IMAGE_BASE64]`;
+      }
+    }
+
+    targetStudents.forEach(stu => {
+      const parentUser = users.find(u => u.role === 'parent' && u.phone === stu.parentPhone);
+      const message = `Kính gửi phụ huynh em ${stu.name},\n\nTrung tâm xin thông báo học phí tháng ${tuitionNotifMonth} của em tại lớp ${group?.name || 'học'}. Kính mong phụ huynh hoàn thành học phí sớm nhất.\n\nTrân trọng cảm ơn!${qrSuffix}`;
+      
+      addNotification({
+        userId: parentUser ? parentUser.id : 'unknown',
+        studentId: stu.id,
+        studentName: stu.name,
+        parentName: stu.parentName,
+        parentPhone: stu.parentPhone,
+        title: `Thông báo học phí tháng ${tuitionNotifMonth}`,
+        message: message,
+        type: 'reminder',
+        channelsSent: ['In-App']
+      });
+    });
+
+    setTuitionNotifModalOpen(false);
+    setTuitionNotifGroupId('');
+    setTuitionNotifMonth((new Date().getMonth() + 1).toString());
+    setTuitionNotifIncludeQR(false);
+    setTuitionNotifImageBase64('');
+    alert(`Đã gửi thông báo học phí cho ${targetStudents.length} phụ huynh!`);
+  };
+
+  const handleSendBulkNotif = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bulkNotifGroupId) {
+      alert('Vui lòng chọn nhóm/lớp!');
+      return;
+    }
+    
+    const targetStudents = students.filter(s => s.groupId === bulkNotifGroupId);
+    if (targetStudents.length === 0) {
+      alert('Nhóm này chưa có học sinh nào!');
+      return;
+    }
+
+    const users = getUsers();
+    
+    let finalMessage = bulkNotifMessage;
+    if (bulkNotifIncludeQR) {
+      finalMessage += '\n\n[Đính kèm Mã QR Thanh toán - Giáo viên có thể bổ sung sau]';
+      if (bulkNotifImageBase64) {
+        finalMessage += `\n[QR_IMAGE_BASE64]${bulkNotifImageBase64}[/QR_IMAGE_BASE64]`;
+      }
+    }
+
+    targetStudents.forEach(stu => {
+      const parentUser = users.find(u => u.role === 'parent' && u.phone === stu.parentPhone);
+      addNotification({
+        userId: parentUser ? parentUser.id : 'unknown',
+        studentId: stu.id,
+        studentName: stu.name,
+        parentName: stu.parentName,
+        parentPhone: stu.parentPhone,
+        title: bulkNotifTitle,
+        message: `Kính gửi phụ huynh em ${stu.name},\n\n${finalMessage}`,
+        type: 'info',
+        channelsSent: ['In-App']
+      });
+    });
+
+    setBulkNotifModalOpen(false);
+    setBulkNotifGroupId('');
+    setBulkNotifTitle('');
+    setBulkNotifMessage('');
+    setBulkNotifIncludeQR(false);
+    setBulkNotifImageBase64('');
+    alert(`Đã gửi thông báo thành công cho ${targetStudents.length} phụ huynh!`);
+  };
+
   const handleSendNotif = (e: React.FormEvent) => {
     e.preventDefault();
     if (!notifStudent) return;
@@ -253,6 +363,14 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setBulkNotifModalOpen(true)}
+            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl shadow-md flex items-center space-x-1.5 transition"
+          >
+            <Bell className="w-4 h-4" />
+            <span>Gửi thông báo lớp</span>
+          </button>
+          
           <button
             onClick={() => setBulkModalOpen(true)}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl shadow-md flex items-center space-x-1.5 transition"
@@ -690,6 +808,230 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
               Đóng
             </button>
 
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Tuition Notification */}
+      {tuitionNotifModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 my-auto">
+            <div className="bg-indigo-600 p-4 text-white flex items-center justify-between">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Banknote className="w-5 h-5" /> Gửi thông báo học phí
+              </h3>
+              <button onClick={() => setTuitionNotifModalOpen(false)} className="text-indigo-200 hover:text-white">✕</button>
+            </div>
+            
+            <form onSubmit={handleSendTuitionNotif} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Nhóm/Lớp Học</label>
+                <select
+                  value={tuitionNotifGroupId}
+                  onChange={(e) => setTuitionNotifGroupId(e.target.value)}
+                  required
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="" disabled>-- Chọn nhóm --</option>
+                  {groups.map((g) => (
+                     <option key={g.id} value={g.id}>
+                      {g.name} ({g.subject} - {g.grade})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn tháng học phí</label>
+                <select
+                  value={tuitionNotifMonth}
+                  onChange={(e) => setTuitionNotifMonth(e.target.value)}
+                  required
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-indigo-500"
+                >
+                  {[...Array(12)].map((_, i) => (
+                    <option key={i+1} value={i+1}>Tháng {i+1}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Bản xem trước mẫu tin nhắn</label>
+                <div className="text-sm text-slate-600 italic">
+                  "Kính gửi phụ huynh em <strong>[Tên Học Sinh]</strong>,<br/><br/>
+                  Trung tâm xin thông báo học phí tháng <strong>{tuitionNotifMonth}</strong> của em tại lớp <strong>{groups.find(g => g.id === tuitionNotifGroupId)?.name || '[Tên Lớp]'}</strong>. Kính mong phụ huynh hoàn thành học phí sớm nhất.<br/><br/>
+                  Trân trọng cảm ơn!"
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    id="tuitionIncludeQR"
+                    checked={tuitionNotifIncludeQR}
+                    onChange={(e) => setTuitionNotifIncludeQR(e.target.checked)}
+                    className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 rounded border-slate-300"
+                  />
+                  <label htmlFor="tuitionIncludeQR" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
+                    <QrCode className="w-4 h-4 text-slate-500" /> Đính kèm Mã QR Thanh Toán
+                  </label>
+                </div>
+                {tuitionNotifIncludeQR && (
+                  <div className="pl-6 pt-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Tải ảnh QR lên (Tùy chọn)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setTuitionNotifImageBase64(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {tuitionNotifImageBase64 && (
+                      <div className="mt-2">
+                        <img src={tuitionNotifImageBase64} alt="QR Preview" className="max-h-32 object-contain border border-slate-200 rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setTuitionNotifModalOpen(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-md"
+                >
+                  Gửi Hàng Loạt
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Bulk Notification to Class */}
+      {bulkNotifModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 my-auto">
+            <div className="bg-amber-600 p-4 text-white flex items-center justify-between">
+              <h3 className="font-bold text-lg flex items-center gap-2">
+                <Bell className="w-5 h-5" /> Gửi thông báo cho lớp
+              </h3>
+              <button onClick={() => setBulkNotifModalOpen(false)} className="text-amber-200 hover:text-white">✕</button>
+            </div>
+            
+            <form onSubmit={handleSendBulkNotif} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Chọn Nhóm/Lớp Học</label>
+                <select
+                  value={bulkNotifGroupId}
+                  onChange={(e) => setBulkNotifGroupId(e.target.value)}
+                  required
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="" disabled>-- Chọn nhóm --</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name} ({g.subject} - {g.grade})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tiêu đề</label>
+                <input 
+                  type="text"
+                  required
+                  value={bulkNotifTitle}
+                  onChange={(e) => setBulkNotifTitle(e.target.value)}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Nội dung</label>
+                <textarea 
+                  rows={4}
+                  required
+                  value={bulkNotifMessage}
+                  onChange={(e) => setBulkNotifMessage(e.target.value)}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500"
+                  placeholder="Kính gửi phụ huynh..."
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    id="bulkIncludeQR"
+                    checked={bulkNotifIncludeQR}
+                    onChange={(e) => setBulkNotifIncludeQR(e.target.checked)}
+                    className="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded border-slate-300"
+                  />
+                  <label htmlFor="bulkIncludeQR" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
+                    <QrCode className="w-4 h-4 text-slate-500" /> Đính kèm Mã QR (Thu học phí)
+                  </label>
+                </div>
+                {bulkNotifIncludeQR && (
+                  <div className="pl-6 pt-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Tải ảnh QR lên (Tùy chọn)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setBulkNotifImageBase64(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {bulkNotifImageBase64 && (
+                      <div className="mt-2">
+                        <img src={bulkNotifImageBase64} alt="QR Preview" className="max-h-32 object-contain border border-slate-200 rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setBulkNotifModalOpen(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md"
+                >
+                  Gửi Hàng Loạt
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

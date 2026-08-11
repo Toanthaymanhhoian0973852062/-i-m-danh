@@ -80,6 +80,41 @@ export interface NotificationItem {
   channelsSent?: string[]; // e.g. ['In-App', 'Email (Mock)', 'Zalo OA API']
 }
 
+export interface FeeConfig {
+  id: string;
+  groupId: string;
+  studentId?: string; // null/undefined -> group default
+  name: string; // e.g., "Học phí Toán 8 - Giai đoạn 1"
+  amount: number;
+  billingType: 'monthly'; // future: 'per_session', 'package'
+  effectiveFrom: string; // YYYY-MM-DD
+  effectiveTo?: string; // YYYY-MM-DD
+  status: 'active' | 'inactive';
+}
+
+export interface PaymentQRCode {
+  id: string;
+  name: string; // e.g., "QR 1"
+  bankName: string; // e.g., "ACB"
+  accountNumber: string; // e.g., "12345678"
+  accountHolder: string; // e.g., "NGUYEN VAN A"
+  transferTemplate: string; // e.g., "HOCPHI {{student_name}} T{{month}}"
+  qrImage: string; // base64 or URL
+  isDefault: boolean;
+  status: 'active' | 'inactive';
+}
+
+export interface TuitionRecord {
+  id: string;
+  studentId: string;
+  groupId: string;
+  month: string; // e.g., "09/2026"
+  amountDue: number; // Snapshot from fee_configs
+  amountPaid: number;
+  dueDate: string; // YYYY-MM-DD
+  status: 'unpaid' | 'partial' | 'paid' | 'overdue';
+}
+
 export interface AttendanceStats {
   totalSessions: number;
   presentCount: number;

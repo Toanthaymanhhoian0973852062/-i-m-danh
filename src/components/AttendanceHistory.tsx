@@ -261,25 +261,25 @@ export const AttendanceHistory: React.FC = () => {
                         {rec.status === 'present' && (
                           <span className="inline-flex items-center space-x-1 text-emerald-800 bg-emerald-100 font-bold text-xs px-2.5 py-1 rounded-full border border-emerald-300">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>🟢 Có mặt</span>
+                            <span>Có mặt</span>
                           </span>
                         )}
                         {rec.status === 'late' && (
                           <span className="inline-flex items-center space-x-1 text-amber-800 bg-amber-100 font-bold text-xs px-2.5 py-1 rounded-full border border-amber-300">
                             <Clock className="w-3.5 h-3.5 text-amber-600" />
-                            <span>🟡 Đi trễ</span>
+                            <span>Đi trễ</span>
                           </span>
                         )}
                         {rec.status === 'excused_absent' && (
                           <span className="inline-flex items-center space-x-1 text-blue-800 bg-blue-100 font-bold text-xs px-2.5 py-1 rounded-full border border-blue-300">
                             <UserX className="w-3.5 h-3.5 text-blue-600" />
-                            <span>🔵 Vắng có phép</span>
+                            <span>Vắng có phép</span>
                           </span>
                         )}
                         {rec.status === 'unexcused_absent' && (
                           <span className="inline-flex items-center space-x-1 text-red-800 bg-red-100 font-bold text-xs px-2.5 py-1 rounded-full border border-red-300">
                             <AlertCircle className="w-3.5 h-3.5 text-red-600" />
-                            <span>🔴 Vắng không phép</span>
+                            <span>Vắng không phép</span>
                           </span>
                         )}
                       </td>

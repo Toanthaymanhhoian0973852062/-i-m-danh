@@ -7,7 +7,8 @@ import {
   getAttendance, 
   getNotifications, 
   getStudentAttendanceStats,
-  markNotificationRead
+  markNotificationRead,
+  getUsers
 } from '../services/storageService';
 import { 
   GraduationCap, 
@@ -36,9 +37,19 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
   const attendance = getAttendance();
   const notifications = getNotifications();
 
+  const users = getUsers();
+  const teachers = users.filter((u) => u.role === 'teacher');
+  
   // Find linked student for this parent
   const linkedStudent = allStudents.find((s) => s.id === currentUser.studentId) || allStudents[0];
   const group = groups.find((g) => g.id === linkedStudent?.groupId);
+  
+  const teacher = group 
+    ? teachers.find(t => {
+        const shortName = group.teacherName?.replace('Thầy ', '')?.replace('Cô ', '') || '';
+        return t.name.includes(shortName);
+      }) || teachers[0]
+    : teachers[0];
 
   const stats = linkedStudent ? getStudentAttendanceStats(linkedStudent.id) : null;
 
@@ -215,11 +226,13 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
               <div className="font-bold text-slate-900">Giáo viên phụ trách:</div>
-              <div className="text-slate-700">Thầy Nguyễn Văn Mạnh</div>
-              <div className="text-emerald-700 font-bold flex items-center space-x-1 pt-1">
-                <Phone className="w-3.5 h-3.5" />
-                <a href="tel:0988123456" className="hover:underline">0988 123 456</a>
-              </div>
+              <div className="text-slate-700">{teacher?.name || 'Chưa phân công'}</div>
+              {teacher?.phone && (
+                <div className="text-emerald-700 font-bold flex items-center space-x-1 pt-1">
+                  <Phone className="w-3.5 h-3.5" />
+                  <a href={`tel:${teacher.phone}`} className="hover:underline">{teacher.phone}</a>
+                </div>
+              )}
             </div>
           </div>
 
