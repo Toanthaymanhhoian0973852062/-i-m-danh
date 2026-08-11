@@ -110,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-1.5 lg:space-x-2 px-2 lg:px-3 py-2 rounded-xl text-xs lg:text-sm font-medium transition-colors whitespace-nowrap ${
                     isActive
                       ? 'bg-blue-50 text-blue-700 font-bold'
                       : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
