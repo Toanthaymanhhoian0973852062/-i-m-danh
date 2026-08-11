@@ -160,16 +160,32 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ currentU
               <button onClick={() => setSelectedNotif(null)} className="text-slate-400 hover:text-slate-700">✕</button>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs whitespace-pre-line text-slate-800 leading-relaxed font-sans">
-              {selectedNotif.message}
-              {selectedNotif.message.includes('[Đính kèm Mã QR') && (
-                <div className="mt-4 p-4 border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center bg-white">
-                  <div className="w-32 h-32 bg-slate-100 border border-slate-200 rounded flex items-center justify-center mb-2">
-                    <span className="text-slate-400 text-xs text-center px-2">Khu vực hiển thị<br/>Mã QR</span>
-                  </div>
-                  <span className="text-amber-700 font-bold text-[11px] uppercase">Mã QR Thanh Toán</span>
-                </div>
-              )}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800 font-sans">
+              {(() => {
+                const parts = selectedNotif.message.split('\n[QR_IMAGE_BASE64]');
+                let textContent = parts[0];
+                let qrBase64 = parts[1] ? parts[1].replace('[/QR_IMAGE_BASE64]', '') : '';
+                return (
+                  <>
+                    <div className="whitespace-pre-line leading-relaxed">{textContent}</div>
+                    {qrBase64 ? (
+                      <div className="mt-4 p-4 border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center bg-white">
+                        <img src={qrBase64} alt="Mã QR Thanh Toán" className="max-w-[200px] max-h-[200px] object-contain mb-2" />
+                        <span className="text-amber-700 font-bold text-[11px] uppercase">Mã QR Thanh Toán</span>
+                      </div>
+                    ) : (
+                      textContent.includes('[Đính kèm Mã QR') && (
+                        <div className="mt-4 p-4 border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center bg-white">
+                          <div className="w-32 h-32 bg-slate-100 border border-slate-200 rounded flex items-center justify-center mb-2">
+                            <span className="text-slate-400 text-xs text-center px-2">Khu vực hiển thị<br/>Mã QR</span>
+                          </div>
+                          <span className="text-amber-700 font-bold text-[11px] uppercase">Mã QR Thanh Toán</span>
+                        </div>
+                      )
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             <div className="p-3 bg-blue-50 rounded-xl text-xs space-y-1">

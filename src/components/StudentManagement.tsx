@@ -47,6 +47,7 @@ export const StudentManagement: React.FC = () => {
   const [notifTitle, setNotifTitle] = useState('');
   const [notifMessage, setNotifMessage] = useState('');
   const [notifIncludeQR, setNotifIncludeQR] = useState(false);
+  const [notifImageBase64, setNotifImageBase64] = useState('');
   
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [selectedStudentProfile, setSelectedStudentProfile] = useState<Student | null>(null);
@@ -188,6 +189,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     setNotifTitle('Thông báo học tập');
     setNotifMessage(`Kính gửi phụ huynh em ${stu.name},\n\n`);
     setNotifIncludeQR(false);
+    setNotifImageBase64('');
     setNotifModalOpen(true);
   };
 
@@ -201,6 +203,9 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
     let finalMessage = notifMessage;
     if (notifIncludeQR) {
       finalMessage += '\n\n[Đính kèm Mã QR Thanh toán - Giáo viên có thể bổ sung sau]';
+      if (notifImageBase64) {
+        finalMessage += `\n[QR_IMAGE_BASE64]${notifImageBase64}[/QR_IMAGE_BASE64]`;
+      }
     }
 
     addNotification({
@@ -731,17 +736,44 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <input 
-                  type="checkbox"
-                  id="includeQR"
-                  checked={notifIncludeQR}
-                  onChange={(e) => setNotifIncludeQR(e.target.checked)}
-                  className="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded border-slate-300"
-                />
-                <label htmlFor="includeQR" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
-                  <QrCode className="w-4 h-4 text-slate-500" /> Đính kèm Mã QR (Thu học phí)
-                </label>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    id="includeQR"
+                    checked={notifIncludeQR}
+                    onChange={(e) => setNotifIncludeQR(e.target.checked)}
+                    className="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded border-slate-300"
+                  />
+                  <label htmlFor="includeQR" className="text-sm font-medium text-slate-700 flex items-center gap-1 cursor-pointer">
+                    <QrCode className="w-4 h-4 text-slate-500" /> Đính kèm Mã QR (Thu học phí)
+                  </label>
+                </div>
+                {notifIncludeQR && (
+                  <div className="pl-6 pt-2">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Tải ảnh QR lên (Tùy chọn)</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setNotifImageBase64(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {notifImageBase64 && (
+                      <div className="mt-2">
+                        <img src={notifImageBase64} alt="QR Preview" className="max-h-32 object-contain border border-slate-200 rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100">
