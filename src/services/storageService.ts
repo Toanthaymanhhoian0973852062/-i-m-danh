@@ -1,5 +1,6 @@
 import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats, FeeConfig, PaymentQRCode, TuitionRecord } from '../types';
 import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_STUDENTS, INITIAL_SESSIONS, INITIAL_ATTENDANCE, INITIAL_NOTIFICATIONS } from '../data/mockSeedData';
+import { syncWithFirestore, pushToFirestore } from '../firebase';
 
 const KEYS = {
   USERS: 'tm_users_v3',
@@ -12,6 +13,47 @@ const KEYS = {
   FEE_CONFIGS: 'tm_fee_configs_v3',
   PAYMENT_QR: 'tm_payment_qr_v3',
   TUITION_RECORDS: 'tm_tuition_records_v3',
+};
+
+const SYNCED_KEYS = [
+  KEYS.USERS,
+  KEYS.GROUPS,
+  KEYS.STUDENTS,
+  KEYS.SESSIONS,
+  KEYS.ATTENDANCE,
+  KEYS.NOTIFICATIONS,
+  KEYS.FEE_CONFIGS,
+  KEYS.PAYMENT_QR,
+  KEYS.TUITION_RECORDS,
+];
+
+let isSyncInitialized = false;
+
+export const initializeSync = () => {
+  if (isSyncInitialized) return;
+  isSyncInitialized = true;
+  
+  SYNCED_KEYS.forEach(key => {
+    syncWithFirestore(key, (data) => {
+      const currentRaw = localStorage.getItem(key);
+      const newRaw = JSON.stringify(data);
+      if (currentRaw !== newRaw && data) {
+        localStorage.setItem(key, newRaw);
+        notifyListeners();
+      }
+    }, () => {
+      // If the document is missing in Firestore, we should push our local data if we have any
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          pushToFirestore(key, parsed);
+        } catch (e) {
+          console.error('Failed to parse local data for sync', e);
+        }
+      }
+    });
+  });
 };
 
 type StorageListener = () => void;
@@ -34,6 +76,7 @@ function getStored<T>(key: string, fallback: T): T {
     const raw = localStorage.getItem(key);
     if (!raw) {
       localStorage.setItem(key, JSON.stringify(fallback));
+      // Do not push fallback to firestore to prevent overwriting cloud data on new devices
       return fallback;
     }
     return JSON.parse(raw);
@@ -46,6 +89,9 @@ function getStored<T>(key: string, fallback: T): T {
 function setStored<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    if (SYNCED_KEYS.includes(key)) {
+      pushToFirestore(key, value);
+    }
     notifyListeners();
   } catch (err) {
     console.error(`Error saving key ${key}:`, err);

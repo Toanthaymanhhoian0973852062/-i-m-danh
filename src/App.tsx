@@ -4,9 +4,9 @@ import {
   getCurrentUser, 
   setCurrentUser, 
   getNotifications, 
-  subscribeStorage 
+  subscribeStorage,
+  initializeSync
 } from './services/storageService';
-
 import { Navbar } from './components/Navbar';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { QuickAttendanceModal } from './components/QuickAttendanceModal';
@@ -23,9 +23,13 @@ import { LandingPage } from './components/LandingPage';
 export default function App() {
   const [currentUser, setCurrUser] = useState<User>(() => getCurrentUser());
   const [activeTab, setActiveTab] = useState<string>('landing');
-
   const [quickAttendanceSession, setQuickAttendanceSession] = useState<Session | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // Initialize firebase sync on mount
+  useEffect(() => {
+    initializeSync();
+  }, []);
 
   // Sync storage notifications
   useEffect(() => {
@@ -39,7 +43,6 @@ export default function App() {
       }).length;
       setUnreadCount(unread);
     };
-
     updateStats();
     const unsubscribe = subscribeStorage(updateStats);
     return () => unsubscribe();
@@ -54,8 +57,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-blue-500 selection:text-white">
-      
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans selection:bg-blue-500 selection:text-white">      
       {/* Top Navigation */}
       {activeTab !== 'landing' && (
         <Navbar
@@ -139,7 +141,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
     </div>
   );
 }
