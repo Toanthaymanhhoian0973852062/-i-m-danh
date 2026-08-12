@@ -1,4 +1,4 @@
-import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats, FeeConfig, PaymentQRCode, TuitionRecord } from '../types';
+import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats, FeeConfig, PaymentQRCode, TuitionRecord , Message } from '../types';
 import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_STUDENTS, INITIAL_SESSIONS, INITIAL_ATTENDANCE, INITIAL_NOTIFICATIONS } from '../data/mockSeedData';
 import { syncWithFirestore, pushToFirestore } from '../firebase';
 
@@ -13,6 +13,7 @@ const KEYS = {
   FEE_CONFIGS: 'tm_fee_configs_v3',
   PAYMENT_QR: 'tm_payment_qr_v3',
   TUITION_RECORDS: 'tm_tuition_records_v3',
+  MESSAGES: 'tm_messages_v3',
 };
 
 const SYNCED_KEYS = [
@@ -25,6 +26,7 @@ const SYNCED_KEYS = [
   KEYS.FEE_CONFIGS,
   KEYS.PAYMENT_QR,
   KEYS.TUITION_RECORDS,
+  KEYS.MESSAGES,
 ];
 
 let isSyncInitialized = false;
@@ -477,7 +479,8 @@ export const deletePaymentQRCode = (id: string) => {
 };
 
 // TuitionRecords
-export const getTuitionRecords = (): TuitionRecord[] => getStored(KEYS.TUITION_RECORDS, []);
+export const getTuitionRecords = (): TuitionRecord[] => getStored(KEYS.TUITION_RECORDS,
+  KEYS.MESSAGES, []);
 export const saveTuitionRecord = (record: TuitionRecord) => {
   const records = getTuitionRecords();
   const existing = records.findIndex(r => r.id === record.id);
@@ -486,7 +489,8 @@ export const saveTuitionRecord = (record: TuitionRecord) => {
   } else {
     records.push(record);
   }
-  setStored(KEYS.TUITION_RECORDS, records);
+  setStored(KEYS.TUITION_RECORDS,
+  KEYS.MESSAGES, records);
 };
 export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
   const allRecords = getTuitionRecords();
@@ -498,5 +502,38 @@ export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
       allRecords.push(r);
     }
   });
-  setStored(KEYS.TUITION_RECORDS, allRecords);
+  setStored(KEYS.TUITION_RECORDS,
+  KEYS.MESSAGES, allRecords);
+};
+
+// Messages
+
+export const getMessages = (): Message[] => getStored(KEYS.MESSAGES, []);
+export const sendMessage = (senderId: string, receiverId: string, content: string): Message => {
+  const messages = getMessages();
+  const newMessage: Message = {
+    id: 'msg_' + Date.now() + Math.random().toString(36).substring(2, 5),
+    senderId,
+    receiverId,
+    content,
+    createdAt: new Date().toISOString(),
+    readStatus: false,
+  };
+  setStored(KEYS.MESSAGES, [...messages, newMessage]);
+  return newMessage;
+};
+export const markMessagesRead = (senderId: string, receiverId: string) => {
+  const messages = getMessages();
+  let updated = false;
+  const newMessages = messages.map(m => {
+    // If the message was sent BY the other person TO me, and is unread, mark it as read
+    if (m.senderId === senderId && m.receiverId === receiverId && !m.readStatus) {
+      updated = true;
+      return { ...m, readStatus: true };
+    }
+    return m;
+  });
+  if (updated) {
+    setStored(KEYS.MESSAGES, newMessages);
+  }
 };

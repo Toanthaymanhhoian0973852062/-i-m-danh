@@ -123,3 +123,12 @@ export interface AttendanceStats {
   unexcusedAbsentCount: number;
   attendanceRate: number; // Percentage 0-100
 }
+
+export interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string; // ISO timestamp
+  readStatus: boolean;
+}
