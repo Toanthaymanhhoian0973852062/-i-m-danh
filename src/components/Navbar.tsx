@@ -92,10 +92,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-blue-700 font-bold text-lg uppercase tracking-tighter">
+              <div className="text-blue-700 font-bold text-base md:text-lg uppercase tracking-tighter whitespace-nowrap">
                 TOÁN THẦY MẠNH
               </div>
-              <div className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest leading-none">
+              <div className="text-slate-400 text-[9px] md:text-[10px] font-semibold uppercase tracking-widest leading-none whitespace-nowrap mt-0.5">
                 Hệ thống Điểm danh
               </div>
             </div>

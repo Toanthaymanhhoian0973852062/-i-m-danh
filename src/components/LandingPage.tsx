@@ -45,24 +45,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
     setError('');
 
     let successUser = null;
+    const cleanIdentifier = identifier.trim().replace(/\s+/g, '');
 
     // Mock Authentication Logic
     if (activeTab === 'teacher') {
-      const foundTeacher = users.find(u => u.role === 'teacher' && u.phone === identifier);
+      const foundTeacher = users.find(u => u.role === 'teacher' && u.phone === cleanIdentifier);
       if (foundTeacher && password === (foundTeacher.password || 'phuocphu2024')) {
         successUser = foundTeacher;
       } else {
         setError('Số điện thoại hoặc Mã bảo mật không chính xác.');
       }
     } else if (activeTab === 'parent') {
-      const foundParent = users.find(u => u.role === 'parent' && u.phone === identifier);
+      const foundParent = users.find(u => u.role === 'parent' && u.phone === cleanIdentifier);
       if (foundParent && password === (foundParent.password || '123456')) {
         successUser = foundParent;
       } else {
         setError('Số điện thoại hoặc mật khẩu không chính xác.');
       }
     } else if (activeTab === 'student') {
-      const foundStudent = users.find(u => u.role === 'student' && u.phone === identifier);
+      const foundStudent = users.find(u => u.role === 'student' && u.phone === cleanIdentifier);
       if (foundStudent && password === (foundStudent.password || '123456')) {
         successUser = foundStudent;
       } else {
@@ -84,17 +85,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
   };
 
   return (
-    <div className="min-h-[85vh] flex flex-col justify-between py-8 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div className="flex flex-col py-8 px-4 sm:px-6 max-w-5xl mx-auto space-y-12">
       
       {/* Hero Header */}
-      <div className="text-center space-y-4 my-auto pt-4">
+      <div className="text-center space-y-4 pt-4">
         
         <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs px-3.5 py-1.5 rounded-full shadow-xs">
           <Sparkles className="w-4 h-4 text-amber-500" />
           <span>Hệ Thống Điểm Danh & Quản Lý Nhóm Học Toán</span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight whitespace-nowrap">
           TOÁN THẦY MẠNH
         </h1>
 
@@ -154,6 +155,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
                     onChange={(e) => setIdentifier(e.target.value)}
                     className="pl-10 w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="Nhập số điện thoại"
+                    autoComplete="tel"
                     required
                   />
                 </div>
@@ -173,6 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="Nhập mật khẩu..."
+                    autoComplete="current-password"
                     required
                   />
                   <button
@@ -193,6 +196,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
 
               <button
                 type="submit"
+                onClick={handleLogin}
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all flex justify-center items-center gap-2"
               >
                 <span>ĐĂNG NHẬP</span>
