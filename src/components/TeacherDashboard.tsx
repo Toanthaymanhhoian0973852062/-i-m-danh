@@ -165,7 +165,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-blue-600/30 flex items-center space-x-2 transition active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              <span>+ TẠO BUỔI HỌC</span>
+              <span>TẠO BUỔI HỌC</span>
             </button>
             <button
               onClick={() => onNavigateTab('students')}
@@ -272,7 +272,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               className="inline-flex items-center space-x-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-lg transition"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Tạo Buổi Học Mới</span>
+              <span>Tạo Buổi Học Mới</span>
             </button>
           </div>
         </div>

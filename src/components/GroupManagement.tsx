@@ -133,7 +133,7 @@ export const GroupManagement: React.FC = () => {
           className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm px-4 py-2.5 rounded-xl shadow-md flex items-center justify-center space-x-2 transition"
         >
           <Plus className="w-4 h-4" />
-          <span>+ TẠO NHÓM HỌC MỚI</span>
+          <span>TẠO NHÓM HỌC MỚI</span>
         </button>
       </div>
 

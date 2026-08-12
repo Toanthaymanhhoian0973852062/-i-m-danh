@@ -384,7 +384,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
             className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md flex items-center space-x-1.5 transition"
           >
             <Plus className="w-4 h-4" />
-            <span>+ THÊM HỌC SINH</span>
+            <span>THÊM HỌC SINH</span>
           </button>
         </div>
       </div>
