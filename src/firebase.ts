@@ -11,7 +11,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = getFirestore(app, "ai-studio-tonthymnhhian-e8c8e17c-2e30-46cd-b7ff-713c6ce617ad");
 
 // Keep track of active listeners
 const unsubscribes = new Map<string, () => void>();

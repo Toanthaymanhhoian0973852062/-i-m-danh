@@ -38,6 +38,16 @@ export const initializeSync = () => {
       const currentRaw = localStorage.getItem(key);
       const newRaw = JSON.stringify(data);
       if (currentRaw !== newRaw && data) {
+        if (Array.isArray(data) && data.length <= 1) {
+           try {
+             const localData = JSON.parse(currentRaw || '[]');
+             if (Array.isArray(localData) && localData.length > data.length) {
+                 // Local has more data, Firestore is empty or default. Push local up instead of wiping local.
+                 pushToFirestore(key, localData);
+                 return;
+             }
+           } catch(e) {}
+        }
         localStorage.setItem(key, newRaw);
         notifyListeners();
       }

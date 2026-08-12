@@ -25,13 +25,14 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [quickAttendanceSession, setQuickAttendanceSession] = useState<Session | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [syncTick, setSyncTick] = useState<number>(0);
 
   // Initialize firebase sync on mount
   useEffect(() => {
     initializeSync();
   }, []);
 
-  // Sync storage notifications
+  // Sync storage notifications and trigger re-render on data changes
   useEffect(() => {
     const updateStats = () => {
       const notifs = getNotifications();
@@ -42,6 +43,7 @@ export default function App() {
         return !n.readStatus;
       }).length;
       setUnreadCount(unread);
+      setSyncTick(t => t + 1);
     };
     updateStats();
     const unsubscribe = subscribeStorage(updateStats);
