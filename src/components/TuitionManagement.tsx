@@ -676,7 +676,7 @@ Xin cảm ơn phụ huynh đã phối hợp cùng giáo viên.`
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+      <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
         <Bell className="w-6 h-6 text-amber-600" />
         GỬI THÔNG BÁO HỌC PHÍ HÀNG LOẠT
       </h2>

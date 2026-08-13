@@ -172,7 +172,7 @@ export const QuickAttendanceModal: React.FC<QuickAttendanceModalProps> = ({
                 <Zap className="w-5 h-5 fill-current" />
               </div>
               <div>
-                <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">
+                <h2 className="text-lg sm:text-lg sm:text-xl font-extrabold tracking-tight">
                   ĐIỂM DANH: {group?.name || 'Nhóm học'}
                 </h2>
                 <div className="text-xs text-blue-200 flex items-center space-x-3 mt-0.5">
@@ -405,7 +405,7 @@ export const QuickAttendanceModal: React.FC<QuickAttendanceModalProps> = ({
               <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                 <Send className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-extrabold text-slate-900">
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
                 Đã Lưu & Phát Thông Báo Cho Phụ Huynh!
               </h3>
               <p className="text-xs text-slate-600">

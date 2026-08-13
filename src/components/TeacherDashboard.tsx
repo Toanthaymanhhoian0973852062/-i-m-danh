@@ -146,7 +146,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>Quản Lý Lớp Học & Điểm Danh Nhanh</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">
               Xin chào, Thầy Mạnh! 👋
             </h1>
             <p className="text-blue-100/80 text-sm mt-1 max-w-2xl">
@@ -189,7 +189,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <BookOpen className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900">{groups.length}</div>
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">{groups.length}</div>
           <div className="text-[11px] text-slate-500 mt-1 flex items-center space-x-1">
             <span className="text-emerald-600 font-semibold">{groups.filter(g => g.status === 'active').length} active</span>
           </div>
@@ -203,7 +203,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900">{totalActiveStudents}</div>
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">{totalActiveStudents}</div>
           <div className="text-[11px] text-slate-500 mt-1">Đang theo học</div>
         </div>
 
@@ -215,7 +215,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <UserCheck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-emerald-600">{presentTodayCount}</div>
+          <div className="text-xl sm:text-2xl font-bold text-emerald-600">{presentTodayCount}</div>
           <div className="text-[11px] text-emerald-700 mt-1 font-medium">🟢 Đã ghi nhận</div>
         </div>
 
@@ -227,7 +227,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-amber-600">{lateTodayCount}</div>
+          <div className="text-xl sm:text-2xl font-bold text-amber-600">{lateTodayCount}</div>
           <div className="text-[11px] text-amber-700 mt-1 font-medium">🟡 Cần nhắc nhở</div>
         </div>
 
@@ -239,7 +239,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <UserX className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-red-600">{absentTodayCount}</div>
+          <div className="text-xl sm:text-2xl font-bold text-red-600">{absentTodayCount}</div>
           <div className="text-[11px] text-red-600 mt-1 font-medium">🔴 Tự động báo phụ huynh</div>
         </div>
 
@@ -278,7 +278,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         </div>
 
         {viewDateSessions.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">
+          <div className="p-5 sm:p-8 text-center text-slate-500">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-2" />
             <p className="font-semibold text-slate-700">Không có buổi học nào scheduled trong ngày này.</p>
             <button

@@ -354,7 +354,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
       {/* Title & Action Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             QUẢN LÝ HỌC SINH & PHỤ HUYNH
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -752,7 +752,7 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <span className="text-xs font-bold text-blue-600 uppercase">Hồ sơ học sinh</span>
-                <h3 className="text-xl font-extrabold text-slate-900">{selectedStudentProfile.name}</h3>
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">{selectedStudentProfile.name}</h3>
               </div>
               <button onClick={() => setSelectedStudentProfile(null)} className="text-slate-400 hover:text-slate-700">✕</button>
             </div>

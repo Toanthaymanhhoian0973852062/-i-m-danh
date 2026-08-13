@@ -55,7 +55,7 @@ export const ReportsView: React.FC = () => {
     <div className="space-y-6 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             BÁO CÁO CHUYÊN CẦN & TỔNG HỢP
           </h1>
           <p className="text-xs text-slate-500 mt-1">

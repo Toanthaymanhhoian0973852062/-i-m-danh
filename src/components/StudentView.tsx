@@ -29,7 +29,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
             <span className="text-[10px] font-extrabold uppercase bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">
               TRANG HỌC SINH
             </span>
-            <h1 className="text-2xl font-extrabold mt-1">Xin chào, {student?.name}!</h1>
+            <h1 className="text-xl sm:text-2xl font-extrabold mt-1">Xin chào, {student?.name}!</h1>
             <p className="text-xs text-blue-100">Lớp {student?.class} • Nhóm Toán: {group?.name}</p>
           </div>
         </div>

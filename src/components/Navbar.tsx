@@ -16,8 +16,7 @@ import {
   BookOpen,
   Sparkles,
   ShieldAlert,
-  Banknote,
-  MessageCircle
+  Banknote
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -26,7 +25,6 @@ interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   unreadCount: number;
-  unreadMessageCount: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -35,7 +33,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
   unreadCount,
-  unreadMessageCount,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
@@ -63,21 +60,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'tuition', label: 'Học phí', icon: Banknote },
     { id: 'attendance_history', label: 'Lịch sử điểm danh', icon: UserCheck },
     { id: 'reports', label: 'Báo cáo', icon: Calendar },
-    { id: 'messages', label: 'Tin nhắn', icon: MessageCircle, badge: unreadMessageCount },
     { id: 'notifications', label: 'Thông báo', icon: Bell, badge: unreadCount },
   ];
 
   const parentNavItems: NavItem[] = [
     { id: 'parent_home', label: 'Trang con học', icon: GraduationCap },
     { id: 'attendance_history', label: 'Lịch sử điểm danh', icon: UserCheck },
-    { id: 'messages', label: 'Tin nhắn', icon: MessageCircle, badge: unreadMessageCount },
     { id: 'notifications', label: 'Thông báo', icon: Bell, badge: unreadCount },
   ];
 
   const studentNavItems: NavItem[] = [
     { id: 'student_home', label: 'Trang cá nhân', icon: GraduationCap },
     { id: 'attendance_history', label: 'Lịch sử điểm danh', icon: UserCheck },
-    { id: 'messages', label: 'Tin nhắn', icon: MessageCircle, badge: unreadMessageCount },
   ];
 
   const navItems = 

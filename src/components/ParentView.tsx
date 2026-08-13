@@ -69,7 +69,7 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
           
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-2xl bg-blue-600/50 border-2 border-blue-400/30 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600/50 border-2 border-blue-400/30 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg">
               🎓
             </div>
             <div>
@@ -78,7 +78,7 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
                   CỔNG THÔNG TIN PHỤ HUYNH
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white mt-0.5">
                 CON CỦA TÔI: {linkedStudent?.name}
               </h1>
               <p className="text-blue-100 text-xs mt-1">

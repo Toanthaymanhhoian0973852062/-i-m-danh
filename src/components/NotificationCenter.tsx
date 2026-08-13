@@ -52,7 +52,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ currentU
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center space-x-2">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center space-x-2">
             <Bell className="w-6 h-6 text-blue-600" />
             <span>TRUNG TÂM THÔNG BÁO</span>
           </h1>
@@ -103,7 +103,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ currentU
       {/* Notification Cards */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-sm">
+          <div className="p-5 sm:p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-sm">
             Chưa có thông báo nào.
           </div>
         ) : (

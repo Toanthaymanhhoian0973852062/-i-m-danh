@@ -99,7 +99,7 @@ export const AttendanceHistory: React.FC = () => {
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             LỊCH SỬ & THỐNG KÊ ĐIỂM DANH
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -176,7 +176,7 @@ export const AttendanceHistory: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-800/80 pb-3">
             <div>
               <span className="text-xs text-blue-300 font-bold uppercase">Hồ sơ chuyên cần cá nhân</span>
-              <h2 className="text-xl font-extrabold">{selectedStudentObj.name}</h2>
+              <h2 className="text-lg sm:text-xl font-extrabold">{selectedStudentObj.name}</h2>
               <p className="text-xs text-blue-200">
                 Lớp {selectedStudentObj.class} • PH: {selectedStudentObj.parentName} ({selectedStudentObj.parentPhone})
               </p>
@@ -184,7 +184,7 @@ export const AttendanceHistory: React.FC = () => {
 
             <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-center border border-white/20">
               <span className="text-[10px] text-blue-200 uppercase font-bold block">Tỷ lệ chuyên cần</span>
-              <span className="text-2xl font-extrabold text-emerald-400">{selectedStudentStats.attendanceRate}%</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-emerald-400">{selectedStudentStats.attendanceRate}%</span>
             </div>
           </div>
 

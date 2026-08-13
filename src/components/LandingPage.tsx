@@ -99,7 +99,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
           TOÁN THẦY MẠNH
         </h1>
 
-        <p className="text-lg sm:text-xl font-bold text-blue-600 italic">
+        <p className="text-lg sm:text-lg sm:text-xl font-bold text-blue-600 italic">
           "Học chắc – Hiểu sâu – Tiến bộ mỗi ngày"
         </p>
 
@@ -133,7 +133,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onSelectUser }) => {
               </button>
             </div>
 
-            <form onSubmit={handleLogin} className="p-6 space-y-4 text-left">
+            <form onSubmit={handleLogin} className="p-4 sm:p-6 space-y-4 text-left">
               {activeTab === 'teacher' && (
                 <div className="text-xs text-slate-500 bg-blue-50 p-3 rounded-xl mb-4 border border-blue-100">
                   <p className="font-bold text-blue-800 mb-1">Dành riêng cho giáo viên quản trị</p>

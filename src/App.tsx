@@ -4,7 +4,6 @@ import {
   getCurrentUser, 
   setCurrentUser, 
   getNotifications,
-  getMessages,
   subscribeStorage,
   initializeSync
 } from './services/storageService';
@@ -20,14 +19,12 @@ import { StudentView } from './components/StudentView';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ReportsView } from './components/ReportsView';
 import { LandingPage } from './components/LandingPage';
-import { MessageCenter } from './components/MessageCenter';
 
 export default function App() {
   const [currentUser, setCurrUser] = useState<User>(() => getCurrentUser());
   const [activeTab, setActiveTab] = useState<string>('landing');
   const [quickAttendanceSession, setQuickAttendanceSession] = useState<Session | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [unreadMessageCount, setUnreadMessageCount] = useState<number>(0);
   const [syncTick, setSyncTick] = useState<number>(0);
 
   // Initialize firebase sync on mount
@@ -46,10 +43,6 @@ export default function App() {
         return !n.readStatus;
       }).length;
       setUnreadCount(unread);
-
-      const msgs = getMessages();
-      const unreadMsgs = msgs.filter(m => m.receiverId === currentUser.id && !m.readStatus).length;
-      setUnreadMessageCount(unreadMsgs);
 
       setSyncTick(t => t + 1);
     };
@@ -76,7 +69,6 @@ export default function App() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           unreadCount={unreadCount}
-          unreadMessageCount={unreadMessageCount}
         />
       )}
 
@@ -123,10 +115,6 @@ export default function App() {
 
         {activeTab === 'reports' && (
           <ReportsView />
-        )}
-
-        {activeTab === 'messages' && (
-          <MessageCenter currentUser={currentUser} />
         )}
       </main>
 

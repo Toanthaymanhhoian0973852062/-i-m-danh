@@ -120,7 +120,7 @@ export const GroupManagement: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             QUẢN LÝ NHÓM HỌC TOÁN
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -248,7 +248,7 @@ export const GroupManagement: React.FC = () => {
             <div className="bg-slate-900 text-white p-5 flex items-center justify-between shrink-0">
               <div>
                 <span className="text-xs text-blue-400 font-bold uppercase">{selectedGroupDetail.grade} • {selectedGroupDetail.subject}</span>
-                <h2 className="text-xl font-extrabold">{selectedGroupDetail.name}</h2>
+                <h2 className="text-lg sm:text-xl font-extrabold">{selectedGroupDetail.name}</h2>
               </div>
               <button
                 onClick={() => setSelectedGroupDetail(null)}
