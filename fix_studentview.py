@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+content = """import React, { useState } from 'react';
 import { User, GradeRecord } from '../types';
 import { getGradeRecords, saveGradeRecord, deleteGradeRecord, getStudents, getGroups, getSessions, getAttendance, getStudentAttendanceStats } from '../services/storageService';
 import { GraduationCap, Book, Plus, Trash2, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle } from 'lucide-react';
@@ -208,3 +208,6 @@ export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
     </div>
   );
 };
+"""
+with open("src/components/StudentView.tsx", "w") as f:
+    f.write(content)

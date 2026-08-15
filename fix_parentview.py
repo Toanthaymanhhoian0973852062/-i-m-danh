@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+content = """import React, { useState } from 'react';
 import { User, GradeRecord } from '../types';
 import { getGradeRecords, getStudents, getGroups, getSessions, getAttendance, getStudentAttendanceStats } from '../services/storageService';
 import { GraduationCap, Book, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle, Phone, Mail } from 'lucide-react';
@@ -154,3 +154,6 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
     </div>
   );
 };
+"""
+with open("src/components/ParentView.tsx", "w") as f:
+    f.write(content)

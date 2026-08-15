@@ -478,17 +478,17 @@ Xin cảm ơn phụ huynh đã phối hợp cùng giáo viên.`
     
     // Convert month string "09/2026" to a date to check effective fee
     const [mStr, yStr] = monthStr.split('/');
-    const checkDateStr = `${yStr}-${mStr}-01`;
+    const checkDateStr = `${yStr}-${mStr}-31`;
 
     const generatedList: any[] = [];
 
     groupStudents.forEach(stu => {
       // Find fee config for this student on this month
       // 1. Check student specific
-      let config = feeConfigs.find(c => c.groupId === groupId && c.studentId === stu.id && c.effectiveFrom <= checkDateStr && (!c.effectiveTo || c.effectiveTo >= checkDateStr));
+      let config = feeConfigs.find(c => c.groupId === groupId && c.studentId === stu.id && c.effectiveFrom <= checkDateStr && (!c.effectiveTo || c.effectiveTo >= `${yStr}-${mStr}-01`));
       // 2. Check group default
       if (!config) {
-        config = feeConfigs.find(c => c.groupId === groupId && !c.studentId && c.effectiveFrom <= checkDateStr && (!c.effectiveTo || c.effectiveTo >= checkDateStr));
+        config = feeConfigs.find(c => c.groupId === groupId && !c.studentId && c.effectiveFrom <= checkDateStr && (!c.effectiveTo || c.effectiveTo >= `${yStr}-${mStr}-01`));
       }
 
       const amountDue = config ? config.amount : 0;
@@ -545,7 +545,7 @@ Xin cảm ơn phụ huynh đã phối hợp cùng giáo viên.`
     });
 
     if (generatedList.length === 0) {
-      alert("Không tìm thấy học sinh nào thỏa mãn điều kiện gửi.");
+      alert("Không tìm thấy học sinh nào thỏa mãn điều kiện gửi. Vui lòng kiểm tra lại Cài đặt Mức thu cho nhóm này (đảm bảo ngày áp dụng hợp lệ) và kiểm tra trạng thái đóng học phí.");
       return;
     }
 

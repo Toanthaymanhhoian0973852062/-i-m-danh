@@ -1,4 +1,4 @@
-import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats, FeeConfig, PaymentQRCode, TuitionRecord  } from '../types';
+import { Group, Student, Session, AttendanceRecord, NotificationItem, User, AttendanceStats, FeeConfig, PaymentQRCode, TuitionRecord, GradeRecord  } from '../types';
 import { INITIAL_USERS, INITIAL_GROUPS, INITIAL_STUDENTS, INITIAL_SESSIONS, INITIAL_ATTENDANCE, INITIAL_NOTIFICATIONS } from '../data/mockSeedData';
 import { syncWithFirestore, pushToFirestore } from '../firebase';
 
@@ -13,6 +13,7 @@ const KEYS = {
   FEE_CONFIGS: 'tm_fee_configs_v3',
   PAYMENT_QR: 'tm_payment_qr_v3',
   TUITION_RECORDS: 'tm_tuition_records_v3',
+  GRADES: 'tm_grades_v3',
 };
 
 const SYNCED_KEYS = [
@@ -25,6 +26,7 @@ const SYNCED_KEYS = [
   KEYS.FEE_CONFIGS,
   KEYS.PAYMENT_QR,
   KEYS.TUITION_RECORDS,
+  KEYS.GRADES,
 ];
 
 let isSyncInitialized = false;
@@ -86,39 +88,20 @@ function getStored<T>(key: string, fallback: T): T {
     const raw = localStorage.getItem(key);
     if (!raw) {
       localStorage.setItem(key, JSON.stringify(fallback));
-      // Do not push fallback to firestore to prevent overwriting cloud data on new devices
       return fallback;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(fallback) && !Array.isArray(parsed)) {
+      console.warn(`Data type mismatch for key ${key}. Expected array but got ${typeof parsed}. Resetting.`);
+      localStorage.setItem(key, JSON.stringify(fallback));
+      return fallback;
+    }
+    return parsed;
   } catch (err) {
     console.error(`Error loading key ${key}:`, err);
     return fallback;
   }
 }
-
-function setStored<T>(key: string, value: T): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    if (SYNCED_KEYS.includes(key)) {
-      pushToFirestore(key, value);
-    }
-    notifyListeners();
-  } catch (err) {
-    console.error(`Error saving key ${key}:`, err);
-  }
-}
-
-// Reset data to seed
-export const resetToSeedData = () => {
-  setStored(KEYS.USERS, INITIAL_USERS);
-  setStored(KEYS.GROUPS, INITIAL_GROUPS);
-  setStored(KEYS.STUDENTS, INITIAL_STUDENTS);
-  setStored(KEYS.SESSIONS, INITIAL_SESSIONS);
-  setStored(KEYS.ATTENDANCE, INITIAL_ATTENDANCE);
-  setStored(KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
-  setStored(KEYS.CURRENT_USER, INITIAL_USERS[0]);
-};
-
 // Users
 export const getUsers = (): User[] => getStored(KEYS.USERS, INITIAL_USERS);
 export const getCurrentUser = (): User => getStored(KEYS.CURRENT_USER, INITIAL_USERS[0]);
@@ -477,8 +460,7 @@ export const deletePaymentQRCode = (id: string) => {
 };
 
 // TuitionRecords
-export const getTuitionRecords = (): TuitionRecord[] => getStored(KEYS.TUITION_RECORDS,
-   []);
+export const getTuitionRecords = (): TuitionRecord[] => getStored(KEYS.TUITION_RECORDS, []);
 export const saveTuitionRecord = (record: TuitionRecord) => {
   const records = getTuitionRecords();
   const existing = records.findIndex(r => r.id === record.id);
@@ -488,6 +470,7 @@ export const saveTuitionRecord = (record: TuitionRecord) => {
     records.push(record);
   }
   setStored(KEYS.TUITION_RECORDS,
+  KEYS.GRADES,
    records);
 };
 export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
@@ -501,6 +484,24 @@ export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
     }
   });
   setStored(KEYS.TUITION_RECORDS,
+  KEYS.GRADES,
    allRecords);
 };
 
+
+// Grades
+export const getGradeRecords = (): GradeRecord[] => getStored(KEYS.GRADES, []);
+export const saveGradeRecord = (record: GradeRecord) => {
+  const records = getGradeRecords();
+  const existing = records.findIndex(r => r.id === record.id);
+  if (existing >= 0) {
+    records[existing] = record;
+  } else {
+    records.push(record);
+  }
+  setStored(KEYS.GRADES, records);
+};
+export const deleteGradeRecord = (id: string) => {
+  const records = getGradeRecords().filter(r => r.id !== id);
+  setStored(KEYS.GRADES, records);
+};

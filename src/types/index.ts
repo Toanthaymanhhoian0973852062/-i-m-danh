@@ -124,3 +124,14 @@ export interface AttendanceStats {
   attendanceRate: number; // Percentage 0-100
 }
 
+
+export interface GradeRecord {
+  id: string;
+  studentId: string;
+  examName: string; // e.g., "Kiểm tra 15 phút", "Thi Giữa Kì 1"
+  score: number;
+  date: string; // YYYY-MM-DD
+  subject?: string; // e.g., "Toán"
+  notes?: string;
+  createdAt: string;
+}
