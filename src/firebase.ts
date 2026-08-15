@@ -10,8 +10,13 @@ const firebaseConfig = {
   appId: "1:1051151138870:web:e4938072113242d5eb1897"
 };
 
+import { initializeFirestore } from 'firebase/firestore';
+
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, "ai-studio-tonthymnhhian-e8c8e17c-2e30-46cd-b7ff-713c6ce617ad");
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true
+}, "ai-studio-tonthymnhhian-e8c8e17c-2e30-46cd-b7ff-713c6ce617ad");
+
 
 // Keep track of active listeners
 const unsubscribes = new Map<string, () => void>();

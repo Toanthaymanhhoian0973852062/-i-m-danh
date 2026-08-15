@@ -125,13 +125,18 @@ export interface AttendanceStats {
 }
 
 
+export type GradeType = 'TX1' | 'TX2' | 'TX3' | 'TX4' | 'TX5' | 'GK' | 'CK';
+
 export interface GradeRecord {
   id: string;
   studentId: string;
-  examName: string; // e.g., "Kiểm tra 15 phút", "Thi Giữa Kì 1"
+  examName?: string; // legacy
   score: number;
-  date: string; // YYYY-MM-DD
-  subject?: string; // e.g., "Toán"
-  notes?: string;
+  date?: string; // legacy
+  subject?: string; // legacy
+  notes?: string; // legacy
+  semester?: 1 | 2;
+  type?: GradeType;
+  imageUrl?: string;
   createdAt: string;
 }

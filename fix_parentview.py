@@ -1,11 +1,21 @@
 content = """import React, { useState } from 'react';
-import { User, GradeRecord } from '../types';
+import { User, GradeRecord, GradeType } from '../types';
 import { getGradeRecords, getStudents, getGroups, getSessions, getAttendance, getStudentAttendanceStats } from '../services/storageService';
-import { GraduationCap, Book, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle, Phone, Mail } from 'lucide-react';
+import { GraduationCap, Book, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle, Phone, Mail, Image as ImageIcon } from 'lucide-react';
 
 interface ParentViewProps {
   currentUser: User;
 }
+
+const GRADE_TYPES: { type: GradeType; label: string; weight: number }[] = [
+  { type: 'TX1', label: 'Thường xuyên 1', weight: 1 },
+  { type: 'TX2', label: 'Thường xuyên 2', weight: 1 },
+  { type: 'TX3', label: 'Thường xuyên 3', weight: 1 },
+  { type: 'TX4', label: 'Thường xuyên 4', weight: 1 },
+  { type: 'TX5', label: 'Thường xuyên 5', weight: 1 },
+  { type: 'GK', label: 'Giữa học kỳ', weight: 2 },
+  { type: 'CK', label: 'Cuối học kỳ', weight: 3 },
+];
 
 export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
   const students = getStudents();
@@ -17,7 +27,25 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
   const group = groups.find((g) => g.id === student?.groupId);
   const stats = student ? getStudentAttendanceStats(student.id) : null;
   const myRecords = attendance.filter((a) => a.studentId === student?.id);
+  
   const grades = getGradeRecords().filter(g => g.studentId === student?.id);
+  const [activeSemester, setActiveSemester] = useState<1 | 2>(1);
+
+  const calcAverage = (sem: 1 | 2) => {
+    const semGrades = grades.filter(g => g.semester === sem && g.type);
+    let totalScore = 0;
+    let totalWeight = 0;
+    semGrades.forEach(g => {
+      const gt = GRADE_TYPES.find(t => t.type === g.type);
+      const weight = gt ? gt.weight : 1;
+      totalScore += g.score * weight;
+      totalWeight += weight;
+    });
+    return totalWeight > 0 ? (totalScore / totalWeight).toFixed(1) : '?';
+  };
+
+  const avgScore = calcAverage(activeSemester);
+  const isRewardEarned = avgScore !== '?' && parseFloat(avgScore) >= 8.0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -96,27 +124,66 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
         <div className="space-y-5">
           {/* GRADES SECTION */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
-            <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2 mb-4">
-              <Book className="w-4 h-4 text-indigo-600" />
-              <span>KẾT QUẢ HỌC TẬP</span>
-            </h2>
-            <div className="space-y-2">
-              {grades.length === 0 ? (
-                <div className="text-center text-xs text-slate-500 py-4 bg-slate-50 rounded-xl border border-slate-100">
-                  Chưa có điểm nào được báo cáo.
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2">
+                <Book className="w-4 h-4 text-indigo-600" />
+                <span>KẾT QUẢ HỌC TẬP</span>
+              </h2>
+              <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setActiveSemester(1)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${activeSemester === 1 ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Học Kỳ 1
+                </button>
+                <button
+                  onClick={() => setActiveSemester(2)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${activeSemester === 2 ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Học Kỳ 2
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+              <div>
+                <div className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-1">Trung bình Kì {activeSemester}</div>
+                <div className="text-3xl font-black text-indigo-900">{avgScore}</div>
+              </div>
+              {isRewardEarned && (
+                <div className="bg-emerald-100 text-emerald-800 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-emerald-200 shadow-sm">
+                  <Award className="w-5 h-5 text-emerald-600" />
+                  <span>Xuất sắc! Bé được Thầy thưởng quà 🎁</span>
                 </div>
-              ) : (
-                grades.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(g => (
-                  <div key={g.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">{g.examName}</div>
-                      <div className="text-xs text-slate-500">{g.subject} • Ngày: {g.date}</div>
-                      {g.notes && <div className="text-[10px] text-slate-400 mt-0.5">📝 {g.notes}</div>}
-                    </div>
-                    <div className="text-lg font-black text-indigo-600 bg-indigo-50 w-10 h-10 flex items-center justify-center rounded-lg">{g.score}</div>
-                  </div>
-                ))
               )}
+            </div>
+
+            <div className="space-y-3 pt-2">
+              {GRADE_TYPES.map(gt => {
+                const grade = grades.find(g => g.semester === activeSemester && g.type === gt.type);
+
+                return (
+                  <div key={gt.type} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between p-3">
+                      <div className="flex-1">
+                        <div className="font-bold text-slate-900 text-sm">{gt.label}</div>
+                        <div className="text-[10px] text-slate-500">Hệ số: {gt.weight}</div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        {grade?.imageUrl && (
+                          <a href={grade.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 p-1 bg-blue-50 rounded-lg" title="Xem ảnh bài thi">
+                            <ImageIcon className="w-4 h-4" />
+                          </a>
+                        )}
+                        <div className={`w-12 h-10 flex items-center justify-center rounded-lg text-lg font-black ${grade ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-400'}`}>
+                          {grade ? grade.score : '-'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

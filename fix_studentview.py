@@ -1,11 +1,21 @@
 content = """import React, { useState } from 'react';
-import { User, GradeRecord } from '../types';
+import { User, GradeRecord, GradeType } from '../types';
 import { getGradeRecords, saveGradeRecord, deleteGradeRecord, getStudents, getGroups, getSessions, getAttendance, getStudentAttendanceStats } from '../services/storageService';
-import { GraduationCap, Book, Plus, Trash2, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle } from 'lucide-react';
+import { GraduationCap, Book, Plus, Trash2, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle, Image as ImageIcon, Link } from 'lucide-react';
 
 interface StudentViewProps {
   currentUser: User;
 }
+
+const GRADE_TYPES: { type: GradeType; label: string; weight: number }[] = [
+  { type: 'TX1', label: 'Thường xuyên 1', weight: 1 },
+  { type: 'TX2', label: 'Thường xuyên 2', weight: 1 },
+  { type: 'TX3', label: 'Thường xuyên 3', weight: 1 },
+  { type: 'TX4', label: 'Thường xuyên 4', weight: 1 },
+  { type: 'TX5', label: 'Thường xuyên 5', weight: 1 },
+  { type: 'GK', label: 'Giữa học kỳ', weight: 2 },
+  { type: 'CK', label: 'Cuối học kỳ', weight: 3 },
+];
 
 export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
   const students = getStudents();
@@ -19,26 +29,46 @@ export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
   const myRecords = attendance.filter((a) => a.studentId === student?.id);
 
   const [grades, setGrades] = useState<GradeRecord[]>(getGradeRecords().filter(g => g.studentId === student?.id));
-  const [showGradeForm, setShowGradeForm] = useState(false);
-  const [newGrade, setNewGrade] = useState<Partial<GradeRecord>>({});
+  const [activeSemester, setActiveSemester] = useState<1 | 2>(1);
+
+  const [editingGrade, setEditingGrade] = useState<{type: GradeType, semester: 1 | 2} | null>(null);
+  const [editScore, setEditScore] = useState<string>('');
+  const [editImageUrl, setEditImageUrl] = useState<string>('');
+
+  const calcAverage = (sem: 1 | 2) => {
+    const semGrades = grades.filter(g => g.semester === sem && g.type);
+    let totalScore = 0;
+    let totalWeight = 0;
+    semGrades.forEach(g => {
+      const gt = GRADE_TYPES.find(t => t.type === g.type);
+      const weight = gt ? gt.weight : 1;
+      totalScore += g.score * weight;
+      totalWeight += weight;
+    });
+    return totalWeight > 0 ? (totalScore / totalWeight).toFixed(1) : '?';
+  };
 
   const handleSaveGrade = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!student) return;
+    if (!student || !editingGrade) return;
+
+    const existing = grades.find(g => g.semester === editingGrade.semester && g.type === editingGrade.type);
+    const scoreNum = Number(editScore);
+
     const record: GradeRecord = {
-      id: `grade_${Date.now()}`,
+      id: existing ? existing.id : `grade_${Date.now()}`,
       studentId: student.id,
-      examName: newGrade.examName || 'Kiểm tra',
-      score: Number(newGrade.score) || 0,
-      date: newGrade.date || new Date().toISOString().split('T')[0],
-      subject: newGrade.subject || 'Toán',
-      notes: newGrade.notes || '',
-      createdAt: new Date().toISOString()
+      semester: editingGrade.semester,
+      type: editingGrade.type,
+      score: scoreNum,
+      imageUrl: editImageUrl,
+      createdAt: existing ? existing.createdAt : new Date().toISOString()
     };
     saveGradeRecord(record);
     setGrades(getGradeRecords().filter(g => g.studentId === student.id));
-    setShowGradeForm(false);
-    setNewGrade({});
+    setEditingGrade(null);
+    setEditScore('');
+    setEditImageUrl('');
   };
 
   const handleDeleteGrade = (id: string) => {
@@ -47,6 +77,9 @@ export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
       setGrades(getGradeRecords().filter(g => g.studentId === student?.id));
     }
   };
+
+  const avgScore = calcAverage(activeSemester);
+  const isRewardEarned = avgScore !== '?' && parseFloat(avgScore) >= 8.0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -93,104 +126,100 @@ export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
-            <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              <span>LỊCH SỬ THAM GIA LỚP HỌC</span>
-            </h2>
+          {/* GRADES SECTION */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2">
+                <Book className="w-4 h-4 text-indigo-600" />
+                <span>BÁO CÁO ĐIỂM SỐ</span>
+              </h2>
+              <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setActiveSemester(1)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${activeSemester === 1 ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Học Kỳ 1
+                </button>
+                <button
+                  onClick={() => setActiveSemester(2)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${activeSemester === 2 ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Học Kỳ 2
+                </button>
+              </div>
+            </div>
 
-            <div className="space-y-2">
-              {myRecords.map((rec) => {
-                const ses = sessions.find((s) => s.id === rec.sessionId);
+            <div className="flex items-center justify-between bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+              <div>
+                <div className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-1">Trung bình Kì {activeSemester}</div>
+                <div className="text-3xl font-black text-indigo-900">{avgScore}</div>
+              </div>
+              {isRewardEarned && (
+                <div className="bg-emerald-100 text-emerald-800 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-emerald-200 shadow-sm">
+                  <Award className="w-5 h-5 text-emerald-600" />
+                  <span>Xuất sắc! Bạn được Thầy thưởng quà 🎁</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 pt-2">
+              {GRADE_TYPES.map(gt => {
+                const grade = grades.find(g => g.semester === activeSemester && g.type === gt.type);
+                const isEditing = editingGrade?.semester === activeSemester && editingGrade?.type === gt.type;
+
                 return (
-                  <div key={rec.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="font-bold text-slate-900">Ngày {ses?.date} ({ses?.startTime} – {ses?.endTime})</div>
-                      <div className="text-[11px] text-slate-500">{ses?.topic}</div>
-                    </div>
-                    <div>
-                      {rec.status === 'present' && <span className="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">🟢 Có mặt</span>}
-                      {rec.status === 'late' && <span className="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full">🟡 Đi trễ</span>}
-                      {rec.status === 'excused_absent' && <span className="bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full">🔵 Vắng có phép</span>}
-                      {rec.status === 'unexcused_absent' && <span className="bg-red-100 text-red-800 font-bold px-2.5 py-1 rounded-full">🔴 Vắng không phép</span>}
+                  <div key={gt.type} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between p-3">
+                      <div className="flex-1">
+                        <div className="font-bold text-slate-900 text-sm">{gt.label}</div>
+                        <div className="text-[10px] text-slate-500">Hệ số: {gt.weight}</div>
+                      </div>
+                      
+                      {isEditing ? (
+                        <div className="flex-1 max-w-xs">
+                           <form onSubmit={handleSaveGrade} className="space-y-2">
+                              <div className="flex gap-2">
+                                <input required type="number" step="0.1" min="0" max="10" placeholder="Điểm" value={editScore} onChange={e => setEditScore(e.target.value)} className="w-20 text-sm p-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
+                                <input type="url" placeholder="Link ảnh (Tùy chọn)" value={editImageUrl} onChange={e => setEditImageUrl(e.target.value)} className="flex-1 text-sm p-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
+                              </div>
+                              <div className="flex justify-end gap-1">
+                                <button type="button" onClick={() => setEditingGrade(null)} className="px-2 py-1 text-[10px] font-bold text-slate-600 bg-slate-200 rounded-md hover:bg-slate-300">Hủy</button>
+                                <button type="submit" className="px-2 py-1 text-[10px] font-bold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">Lưu</button>
+                              </div>
+                           </form>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          {grade?.imageUrl && (
+                            <a href={grade.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 p-1 bg-blue-50 rounded-lg" title="Xem ảnh bài thi">
+                              <ImageIcon className="w-4 h-4" />
+                            </a>
+                          )}
+                          <div className={`w-12 h-10 flex items-center justify-center rounded-lg text-lg font-black ${grade ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-400'}`}>
+                            {grade ? grade.score : '-'}
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <button onClick={() => { setEditingGrade({type: gt.type, semester: activeSemester}); setEditScore(grade ? grade.score.toString() : ''); setEditImageUrl(grade?.imageUrl || ''); }} className="text-slate-400 hover:text-indigo-600 p-1">
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                            {grade && (
+                              <button onClick={() => handleDeleteGrade(grade.id)} className="text-slate-400 hover:text-red-600 p-1">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
+
           </div>
         </div>
 
         <div className="space-y-5">
-          {/* GRADES SECTION */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2">
-                <Book className="w-4 h-4 text-indigo-600" />
-                <span>BÁO CÁO ĐIỂM SỐ</span>
-              </h2>
-              <button onClick={() => setShowGradeForm(!showGradeForm)} className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 p-2 rounded-xl text-xs font-bold flex items-center gap-1 transition">
-                <Plus className="w-3 h-3" />
-                Báo điểm
-              </button>
-            </div>
-
-            {showGradeForm && (
-              <form onSubmit={handleSaveGrade} className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Kỳ thi / Bài kiểm tra *</label>
-                    <input required type="text" value={newGrade.examName || ''} onChange={e => setNewGrade({...newGrade, examName: e.target.value})} placeholder="Vd: Thi Giữa Kì 1" className="w-full text-sm p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Môn học</label>
-                    <input type="text" value={newGrade.subject || 'Toán'} onChange={e => setNewGrade({...newGrade, subject: e.target.value})} className="w-full text-sm p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Điểm số *</label>
-                    <input required type="number" step="0.1" min="0" max="10" value={newGrade.score || ''} onChange={e => setNewGrade({...newGrade, score: Number(e.target.value)})} className="w-full text-sm p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Ngày thi</label>
-                    <input type="date" value={newGrade.date || ''} onChange={e => setNewGrade({...newGrade, date: e.target.value})} className="w-full text-sm p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Ghi chú thêm</label>
-                    <input type="text" value={newGrade.notes || ''} onChange={e => setNewGrade({...newGrade, notes: e.target.value})} className="w-full text-sm p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-2">
-                  <button type="button" onClick={() => setShowGradeForm(false)} className="px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-lg">Hủy</button>
-                  <button type="submit" className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg">Lưu điểm</button>
-                </div>
-              </form>
-            )}
-
-            <div className="space-y-2">
-              {grades.length === 0 ? (
-                <div className="text-center text-xs text-slate-500 py-4 bg-slate-50 rounded-xl border border-slate-100">
-                  Chưa có điểm nào được báo cáo.
-                </div>
-              ) : (
-                grades.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(g => (
-                  <div key={g.id} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">{g.examName}</div>
-                      <div className="text-xs text-slate-500">{g.subject} • Ngày: {g.date}</div>
-                      {g.notes && <div className="text-[10px] text-slate-400 mt-0.5">📝 {g.notes}</div>}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-lg font-black text-indigo-600 bg-indigo-50 w-10 h-10 flex items-center justify-center rounded-lg">{g.score}</div>
-                      <button onClick={() => handleDeleteGrade(g.id)} className="text-slate-400 hover:text-red-500 p-1">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
             <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2">
               <Clock className="w-4 h-4 text-indigo-600" />
@@ -201,6 +230,32 @@ export const StudentView: React.FC<StudentViewProps> = ({ currentUser }) => {
               <div className="text-slate-700">📅 Lịch: <strong>{group?.schedule}</strong></div>
               <div className="text-slate-700">⏰ Khung giờ: <strong>{group?.startTime} – {group?.endTime}</strong></div>
               <div className="text-slate-700">📍 {group?.location}</div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3">
+            <h2 className="text-sm font-extrabold text-slate-900 uppercase flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              <span>LỊCH SỬ THAM GIA</span>
+            </h2>
+
+            <div className="space-y-2">
+              {myRecords.slice(0, 5).map((rec) => {
+                const ses = sessions.find((s) => s.id === rec.sessionId);
+                return (
+                  <div key={rec.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div>
+                      <div className="font-bold text-slate-900">{ses?.date}</div>
+                    </div>
+                    <div>
+                      {rec.status === 'present' && <span className="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Có mặt</span>}
+                      {rec.status === 'late' && <span className="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">Trễ</span>}
+                      {rec.status === 'excused_absent' && <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">Vắng (P)</span>}
+                      {rec.status === 'unexcused_absent' && <span className="bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded-full">Vắng (KP)</span>}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

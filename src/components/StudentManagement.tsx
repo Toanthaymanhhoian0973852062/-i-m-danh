@@ -31,7 +31,8 @@ import {
   EyeOff,
   Bell,
   QrCode,
-  Banknote
+  Banknote,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export const StudentManagement: React.FC = () => {
@@ -39,6 +40,7 @@ export const StudentManagement: React.FC = () => {
   const groups = getGroups();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewerImage, setViewerImage] = useState<string | null>(null);
   const [filterGroupId, setFilterGroupId] = useState('all');
   const [singleModalOpen, setSingleModalOpen] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
@@ -805,23 +807,78 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
             {(() => {
               const grades = getGradeRecords().filter(g => g.studentId === selectedStudentProfile.id);
               if (grades.length === 0) return null;
-              return (
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <div className="text-xs font-bold text-slate-700 uppercase">Điểm số gần đây</div>
-                  <div className="space-y-1">
-                    {grades.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3).map(g => (
-                      <div key={g.id} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
-                        <div>
-                          <div className="text-xs font-bold text-slate-800">{g.examName}</div>
-                          <div className="text-[10px] text-slate-500">{g.date}</div>
+
+              const GRADE_TYPES = [
+                { type: 'TX1', weight: 1 }, { type: 'TX2', weight: 1 }, { type: 'TX3', weight: 1 }, { type: 'TX4', weight: 1 }, { type: 'TX5', weight: 1 },
+                { type: 'GK', weight: 2 }, { type: 'CK', weight: 3 },
+              ];
+
+              const calcAvg = (sem) => {
+                const sG = grades.filter(g => g.semester === sem && g.type);
+                let tS = 0, tW = 0;
+                sG.forEach(g => {
+                  const gt = GRADE_TYPES.find(t => t.type === g.type);
+                  const w = gt ? gt.weight : 1;
+                  tS += g.score * w;
+                  tW += w;
+                });
+                return tW > 0 ? (tS / tW).toFixed(1) : '?';
+              };
+
+              const avg1 = calcAvg(1);
+              const avg2 = calcAvg(2);
+
+              const renderGradesList = (sem: 1 | 2) => {
+                const semGrades = grades.filter(g => g.semester === sem && g.type);
+                if (semGrades.length === 0) return null;
+                
+                return (
+                  <div className="space-y-1 mt-2">
+                    <div className="text-[10px] font-bold text-slate-500 mb-1">CHI TIẾT KỲ {sem}</div>
+                    {GRADE_TYPES.map(gt => {
+                      const g = semGrades.find(x => x.type === gt.type);
+                      if (!g) return null;
+                      return (
+                        <div key={gt.type} className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
+                          <div>
+                            <div className="text-xs font-bold text-slate-800">{gt.type} <span className="text-[10px] text-slate-500 font-normal">({gt.weight}x)</span></div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {g.imageUrl && (
+                            <button type="button" onClick={() => setViewerImage(g.imageUrl)} className="block relative w-12 h-10 rounded-lg overflow-hidden border border-slate-200 hover:border-indigo-400 transition-colors bg-slate-100 shrink-0 shadow-sm" title="Bấm để xem ảnh phóng to">
+                              <img src={g.imageUrl} alt="Bài thi" className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+                            </button>
+                          )}
+                            <div className="font-black text-indigo-600 bg-indigo-100 w-8 h-8 flex items-center justify-center rounded">{g.score}</div>
+                          </div>
                         </div>
-                        <div className="font-black text-indigo-600 bg-indigo-100 w-8 h-8 flex items-center justify-center rounded">{g.score}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
+                  </div>
+                );
+              };
+
+              return (
+                <div className="pt-3 border-t border-slate-100 space-y-2 max-h-64 overflow-y-auto">
+                  <div className="text-xs font-bold text-slate-700 uppercase sticky top-0 bg-white py-1">Kết quả học tập (Đối chiếu)</div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <div className="bg-indigo-50 p-2 rounded-xl border border-indigo-100 text-center">
+                      <div className="text-[10px] text-indigo-600 font-bold">HỌC KỲ 1</div>
+                      <div className="text-xl font-black text-indigo-900">{avg1}</div>
+                    </div>
+                    <div className="bg-indigo-50 p-2 rounded-xl border border-indigo-100 text-center">
+                      <div className="text-[10px] text-indigo-600 font-bold">HỌC KỲ 2</div>
+                      <div className="text-xl font-black text-indigo-900">{avg2}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>{renderGradesList(1)}</div>
+                    <div>{renderGradesList(2)}</div>
                   </div>
                 </div>
-              );
-            })()}
+              );            })()}
 
             <button
               onClick={() => setSelectedStudentProfile(null)}
@@ -1160,6 +1217,14 @@ Phạm Ngọc Linh, 8A1, 0983334455, Phạm Văn Hải, 0934343434, haiparent@gm
         </div>
       )}
 
-    </div>
+    
+      {viewerImage && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setViewerImage(null)}>
+          <img src={viewerImage} alt="Phóng to" className="max-w-full max-h-full rounded-xl object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
+          <button onClick={() => setViewerImage(null)} className="absolute top-4 right-4 text-white bg-slate-800/50 hover:bg-slate-800 rounded-full p-2">✕</button>
+        </div>
+      )}
+    
+</div>
   );
 };

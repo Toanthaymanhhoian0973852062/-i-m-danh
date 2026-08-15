@@ -102,6 +102,12 @@ function getStored<T>(key: string, fallback: T): T {
     return fallback;
   }
 }
+
+const setStored = <T>(key: string, data: T) => {
+  localStorage.setItem(key, JSON.stringify(data));
+  pushToFirestore(key, data);
+  listeners.forEach(listener => listener());
+};
 // Users
 export const getUsers = (): User[] => getStored(KEYS.USERS, INITIAL_USERS);
 export const getCurrentUser = (): User => getStored(KEYS.CURRENT_USER, INITIAL_USERS[0]);
@@ -469,9 +475,7 @@ export const saveTuitionRecord = (record: TuitionRecord) => {
   } else {
     records.push(record);
   }
-  setStored(KEYS.TUITION_RECORDS,
-  KEYS.GRADES,
-   records);
+  setStored(KEYS.TUITION_RECORDS, records);
 };
 export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
   const allRecords = getTuitionRecords();
@@ -483,9 +487,7 @@ export const addTuitionRecordsBulk = (records: TuitionRecord[]) => {
       allRecords.push(r);
     }
   });
-  setStored(KEYS.TUITION_RECORDS,
-  KEYS.GRADES,
-   allRecords);
+  setStored(KEYS.TUITION_RECORDS, allRecords);
 };
 
 

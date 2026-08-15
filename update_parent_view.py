@@ -1,72 +1,13 @@
-import React, { useState } from 'react';
-import { User, GradeRecord, GradeType } from '../types';
-import { getGradeRecords, getStudents, getGroups, getSessions, getAttendance, getStudentAttendanceStats } from '../services/storageService';
-import { GraduationCap, Book, Calendar, Clock, Award, CheckCircle2, UserX, AlertTriangle, Phone, Mail, Image as ImageIcon } from 'lucide-react';
+import re
 
-interface ParentViewProps {
-  currentUser: User;
-}
+with open("src/components/ParentView.tsx", "r") as f:
+    content = f.read()
 
-const GRADE_TYPES: { type: GradeType; label: string; weight: number }[] = [
-  { type: 'TX1', label: 'Thường xuyên 1', weight: 1 },
-  { type: 'TX2', label: 'Thường xuyên 2', weight: 1 },
-  { type: 'TX3', label: 'Thường xuyên 3', weight: 1 },
-  { type: 'TX4', label: 'Thường xuyên 4', weight: 1 },
-  { type: 'TX5', label: 'Thường xuyên 5', weight: 1 },
-  { type: 'GK', label: 'Giữa học kỳ', weight: 2 },
-  { type: 'CK', label: 'Cuối học kỳ', weight: 3 },
-];
+# Add mainTab state
+content = content.replace("const [activeSemester, setActiveSemester] = useState<1 | 2>(1);", "const [activeSemester, setActiveSemester] = useState<1 | 2>(1);\n  const [mainTab, setMainTab] = useState<'attendance' | 'grades'>('attendance');")
 
-export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
-  const students = getStudents();
-  const groups = getGroups();
-  const sessions = getSessions();
-  const attendance = getAttendance();
-
-  const student = students.find((s) => s.id === currentUser.studentId) || students[0];
-  const group = groups.find((g) => g.id === student?.groupId);
-  const stats = student ? getStudentAttendanceStats(student.id) : null;
-  const myRecords = attendance.filter((a) => a.studentId === student?.id);
-  
-  const grades = getGradeRecords().filter(g => g.studentId === student?.id);
-  const [activeSemester, setActiveSemester] = useState<1 | 2>(1);
-  const [viewerImage, setViewerImage] = useState<string | null>(null);
-  const [mainTab, setMainTab] = useState<'attendance' | 'grades'>('attendance');
-
-  const calcAverage = (sem: 1 | 2) => {
-    const semGrades = grades.filter(g => g.semester === sem && g.type);
-    let totalScore = 0;
-    let totalWeight = 0;
-    semGrades.forEach(g => {
-      const gt = GRADE_TYPES.find(t => t.type === g.type);
-      const weight = gt ? gt.weight : 1;
-      totalScore += g.score * weight;
-      totalWeight += weight;
-    });
-    return totalWeight > 0 ? (totalScore / totalWeight).toFixed(1) : '?';
-  };
-
-  const avgScore = calcAverage(activeSemester);
-  const isRewardEarned = avgScore !== '?' && parseFloat(avgScore) >= 8.0;
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      <div className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-3xl p-6 text-white shadow-xl">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-600/50 border border-emerald-400/30 flex items-center justify-center text-3xl font-bold">
-            👨‍👩‍👦
-          </div>
-          <div>
-            <span className="text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">
-              TRANG PHỤ HUYNH
-            </span>
-            <h1 className="text-xl sm:text-2xl font-extrabold mt-1">Xin chào, {currentUser.name}!</h1>
-            <p className="text-xs text-emerald-100">Phụ huynh em: <strong>{student?.name}</strong> • Lớp {student?.class}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+# Replace everything after the header block
+replacement = """      <div className="flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <button onClick={() => setMainTab('attendance')} className={`flex-1 py-3 text-sm font-bold uppercase transition-colors ${mainTab === 'attendance' ? 'bg-emerald-50 text-emerald-700 border-b-2 border-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}>
           Chuyên cần & Lịch học
         </button>
@@ -218,10 +159,10 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
                       
                       <div className="flex items-center gap-3">
                         {grade?.imageUrl && (
-                            <button type="button" onClick={() => setViewerImage(grade?.imageUrl)} className="block relative w-12 h-10 rounded-lg overflow-hidden border border-slate-200 hover:border-indigo-400 transition-colors bg-slate-100 shrink-0 shadow-sm" title="Bấm để xem ảnh phóng to">
-                              <img src={grade?.imageUrl} alt="Bài thi" className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
-                            </button>
-                          )}
+                          <a href={grade.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 p-1 bg-blue-50 rounded-lg" title="Xem ảnh bài thi">
+                            <ImageIcon className="w-4 h-4" />
+                          </a>
+                        )}
                         <div className={`w-12 h-10 flex items-center justify-center rounded-lg text-lg font-black ${grade ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-400'}`}>
                           {grade ? grade.score : '-'}
                         </div>
@@ -234,14 +175,12 @@ export const ParentView: React.FC<ParentViewProps> = ({ currentUser }) => {
           </div>
         </div>
       )}
-    
-      {viewerImage && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setViewerImage(null)}>
-          <img src={viewerImage} alt="Phóng to" className="max-w-full max-h-full rounded-xl object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
-          <button onClick={() => setViewerImage(null)} className="absolute top-4 right-4 text-white bg-slate-800/50 hover:bg-slate-800 rounded-full p-2">✕</button>
-        </div>
-      )}
-    
-</div>
+    </div>
   );
 };
+"""
+
+content = re.sub(r"      <div className=\"grid grid-cols-1 md:grid-cols-3 gap-5\">.*", replacement, content, flags=re.DOTALL)
+
+with open("src/components/ParentView.tsx", "w") as f:
+    f.write(content)
